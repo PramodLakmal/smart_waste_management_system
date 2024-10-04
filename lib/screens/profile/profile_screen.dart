@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../models/user_model.dart';
-import '../../services/user_service.dart';
+import '../../services/auth_service.dart'; // Import AuthService
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../models/user_model.dart'; // Import the UserModel
+import 'edit_profile_screen.dart'; // Import the EditProfileScreen
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -9,32 +11,30 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  UserModel? userModel; // Nullable UserModel
-  final UserService _userService = UserService();
-  bool isLoading = true; // Loading state
+  final AuthService _authService = AuthService(); // Create an instance of AuthService
+  UserModel? _currentUserDetails;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadUserProfile();
+    _fetchUserDetails(); // Fetch user details on initialization
   }
 
-  // Load the user profile from Firestore
-  void _loadUserProfile() async {
-    String userId = FirebaseAuth.instance.currentUser?.uid ?? ''; // Get current user ID
+  // Fetch currently logged-in user's details from Firestore
+  Future<void> _fetchUserDetails() async {
+    User? currentUser = FirebaseAuth.instance.currentUser;
 
-    if (userId.isNotEmpty) { // Ensure userId is not empty
-      UserModel? user = await _userService.getUserById(userId);
+    if (currentUser != null) {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+
       setState(() {
-        userModel = user; // Assign the user data to userModel
-        isLoading = false; // Set loading to false
+        _currentUserDetails = UserModel.fromDocument(userDoc); // Create a UserModel from the document
+        _isLoading = false;
       });
-    } else {
-      // Handle case where user is not logged in
-      setState(() {
-        isLoading = false; // Set loading to false
-      });
-      print("User is not logged in.");
     }
   }
 
@@ -43,25 +43,90 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Profile'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.edit),
+            onPressed: () async {
+              // Navigate to EditProfileScreen with user details
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditProfileScreen(userModel: _currentUserDetails!),
+                ),
+              );
+
+              // Check if the result is true, indicating the profile was updated
+              if (result == true) {
+                _fetchUserDetails(); // Reload user details
+              }
+            },
+          ),
+        ],
       ),
-      body: isLoading // Check loading state
-          ? Center(child: CircularProgressIndicator()) // Show loading indicator while fetching
-          : userModel != null // Check if userModel is not null
-              ? Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Name: ${userModel!.name}', style: TextStyle(fontSize: 20)),
-                      SizedBox(height: 10),
-                      Text('Email: ${userModel!.email}', style: TextStyle(fontSize: 20)),
-                      SizedBox(height: 10),
-                      Text('Phone: ${userModel!.phone}', style: TextStyle(fontSize: 20)),
-                      // Display other user details like address, role, etc.
-                    ],
-                  ),
-                )
-              : Center(child: Text('User data not found.')),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator()) // Show loading spinner while fetching data
+          : SingleChildScrollView( // Add scrolling capability
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    _buildProfileCard(),
+                    SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () async {
+                        await _authService.signOut(); // Sign out the user
+                        Navigator.pushReplacementNamed(context, '/'); // Navigate to login page
+                      },
+                      child: Text('Sign Out'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+    );
+  }
+
+  // Method to build the profile card showing user details
+  Widget _buildProfileCard() {
+    return Card(
+      elevation: 5,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Center(
+              child: CircleAvatar(
+                radius: 40,
+                child: Text(
+                  _currentUserDetails!.name[0], // Display first letter of the name
+                  style: TextStyle(fontSize: 40),
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
+            _buildInfoTile(Icons.person, 'Name', _currentUserDetails!.name),
+            _buildInfoTile(Icons.email, 'Email', _currentUserDetails!.email),
+            _buildInfoTile(Icons.phone, 'Phone', _currentUserDetails!.phone),
+            _buildInfoTile(Icons.location_on, 'Address', _currentUserDetails!.address),
+            _buildInfoTile(Icons.location_city, 'City', _currentUserDetails!.city),
+            _buildInfoTile(Icons.map, 'State', _currentUserDetails!.state),
+            _buildInfoTile(Icons.flag, 'Country', _currentUserDetails!.country),
+            _buildInfoTile(Icons.markunread_mailbox, 'Postal Code', _currentUserDetails!.postalCode),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Method to build a ListTile for displaying user info
+  Widget _buildInfoTile(IconData icon, String label, String value) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.green),
+      title: Text(label, style: TextStyle(fontWeight: FontWeight.bold)),
+      subtitle: Text(value.isNotEmpty ? value : 'Not provided'),
     );
   }
 }

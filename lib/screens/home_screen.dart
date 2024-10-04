@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/bottom_nav_bar.dart';
+import 'profile/profile_screen.dart'; // Import the ProfileScreen widget
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -13,22 +14,15 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _selectedIndex = index;
     });
-
-    if (index == 1) {
-      Navigator.pushNamed(context, '/profile');
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Smart Waste Management'),
-      ),
       body: Center(
         child: _selectedIndex == 0
-            ? Text('Home Page Content')
-            : Text('Profile Page'),
+            ? Text('Home Page Content')  // Replace with your actual home page content
+            : ProfileScreen(),  // Show ProfileScreen widget in the same Scaffold
       ),
       bottomNavigationBar: BottomNavBar(
         selectedIndex: _selectedIndex,
