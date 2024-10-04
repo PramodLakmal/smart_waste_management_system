@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../widgets/bottom_nav_bar.dart';
-import 'profile/profile_screen.dart'; // Import the ProfileScreen widget
+import 'package:flutter/foundation.dart'; // For kIsWeb
+import '../widgets/responsive_nav_bar.dart'; // Import the responsive nav bar
+import '../screens/profile/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -19,15 +20,25 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+      ),
+      drawer: kIsWeb
+          ? ResponsiveNavBar( // Drawer for web
+              selectedIndex: _selectedIndex,
+              onItemTapped: _onItemTapped,
+            )
+          : null, // No drawer on mobile, use bottom nav instead
       body: Center(
         child: _selectedIndex == 0
-            ? Text('Home Page Content')  // Replace with your actual home page content
-            : ProfileScreen(),  // Show ProfileScreen widget in the same Scaffold
+            ? Text('Home Page')
+            : ProfileScreen(),
       ),
-      bottomNavigationBar: BottomNavBar(
-        selectedIndex: _selectedIndex,
-        onItemTapped: _onItemTapped,
-      ),
+      bottomNavigationBar: !kIsWeb
+          ? ResponsiveNavBar( // Bottom navigation for mobile
+              selectedIndex: _selectedIndex,
+              onItemTapped: _onItemTapped,
+            )
+          : null, // No bottom nav on web, use drawer instead
     );
   }
 }

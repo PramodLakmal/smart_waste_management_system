@@ -4,6 +4,7 @@ import '../../services/auth_service.dart'; // Import AuthService
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/user_model.dart'; // Import the UserModel
 import 'edit_profile_screen.dart'; // Import the EditProfileScreen
+import 'package:flutter/foundation.dart'; // For kIsWeb
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -38,52 +39,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  // Handle the back button press to navigate to the home screen
+  Future<bool> _onWillPop() async {
+    Navigator.pushReplacementNamed(context, '/home'); // Navigate to home when back is pressed
+    return false; // Prevent default back navigation
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Profile'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.edit),
-            onPressed: () async {
-              // Navigate to EditProfileScreen with user details
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EditProfileScreen(userModel: _currentUserDetails!),
-                ),
-              );
+    return WillPopScope(
+      onWillPop: _onWillPop, // Handle back button press
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Profile'),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.edit),
+              onPressed: () async {
+                // Navigate to EditProfileScreen with user details
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditProfileScreen(userModel: _currentUserDetails!),
+                  ),
+                );
 
-              // Check if the result is true, indicating the profile was updated
-              if (result == true) {
-                _fetchUserDetails(); // Reload user details
-              }
-            },
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator()) // Show loading spinner while fetching data
-          : SingleChildScrollView( // Add scrolling capability
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    _buildProfileCard(),
-                    SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () async {
-                        await _authService.signOut(); // Sign out the user
-                        Navigator.pushReplacementNamed(context, '/'); // Navigate to login page
-                      },
-                      child: Text('Sign Out'),
+                // Check if the result is true, indicating the profile was updated
+                if (result == true) {
+                  _fetchUserDetails(); // Reload user details
+                }
+              },
+            ),
+          ],
+        ),
+        body: _isLoading
+            ? Center(child: CircularProgressIndicator()) // Show loading spinner while fetching data
+            : SingleChildScrollView(
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(16.0),
+                    constraints: BoxConstraints(maxWidth: 600), // Constrain width for larger screens
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        _buildProfileCard(),
+                        SizedBox(height: 20),
+                        _buildSignOutButton(),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
+      ),
     );
   }
 
@@ -91,23 +98,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildProfileCard() {
     return Card(
       elevation: 5,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            Center(
-              child: CircleAvatar(
-                radius: 40,
-                child: Text(
-                  _currentUserDetails!.name[0], // Display first letter of the name
-                  style: TextStyle(fontSize: 40),
-                ),
+            CircleAvatar(
+              radius: 50,
+              backgroundColor: Colors.green,
+              child: Text(
+                _currentUserDetails!.name[0], // Display first letter of the name
+                style: TextStyle(fontSize: 40, color: Colors.white),
               ),
             ),
             SizedBox(height: 20),
-            _buildInfoTile(Icons.person, 'Name', _currentUserDetails!.name),
+            Text(
+              _currentUserDetails!.name,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 10),
+            Divider(),
             _buildInfoTile(Icons.email, 'Email', _currentUserDetails!.email),
             _buildInfoTile(Icons.phone, 'Phone', _currentUserDetails!.phone),
             _buildInfoTile(Icons.location_on, 'Address', _currentUserDetails!.address),
@@ -118,6 +132,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  // Widget for the Sign Out button
+  Widget _buildSignOutButton() {
+    return ElevatedButton(
+      onPressed: () async {
+        await _authService.signOut(); // Sign out the user
+        Navigator.pushReplacementNamed(context, '/'); // Navigate to login page
+      },
+      style: ElevatedButton.styleFrom(
+        padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+        textStyle: TextStyle(fontSize: 18),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12), // Add rounded corners
+        ),
+        backgroundColor: Colors.red, // Set the button color to red for sign out
+      ),
+      child: Text('Sign Out'),
     );
   }
 

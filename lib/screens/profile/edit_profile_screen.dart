@@ -41,27 +41,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   // Save changes to Firestore
-Future<void> _saveChanges() async {
-  if (_formKey.currentState!.validate()) {
-    User? currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
-      await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).update({
-        'name': _nameController.text,
-        'email': _emailController.text,
-        'phone': _phoneController.text,
-        'address': _addressController.text,
-        'city': _cityController.text,
-        'state': _stateController.text,
-        'country': _countryController.text,
-        'postalCode': _postalCodeController.text,
-      });
+  Future<void> _saveChanges() async {
+    if (_formKey.currentState!.validate()) {
+      User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).update({
+          'name': _nameController.text,
+          'email': _emailController.text,
+          'phone': _phoneController.text,
+          'address': _addressController.text,
+          'city': _cityController.text,
+          'state': _stateController.text,
+          'country': _countryController.text,
+          'postalCode': _postalCodeController.text,
+        });
 
-      // Show confirmation and pop the screen with true result
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Profile updated successfully')));
-      Navigator.pop(context, true); // Return true to indicate the profile was updated
+        // Show confirmation and pop the screen with true result
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Profile updated successfully')));
+        Navigator.pop(context, true); // Return true to indicate the profile was updated
+      }
     }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -69,26 +69,27 @@ Future<void> _saveChanges() async {
       appBar: AppBar(
         title: Text('Edit Profile'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              _buildTextField('Name', _nameController),
-              _buildTextField('Email', _emailController, isEmail: true),
-              _buildTextField('Phone', _phoneController),
-              _buildTextField('Address', _addressController),
-              _buildTextField('City', _cityController),
-              _buildTextField('State', _stateController),
-              _buildTextField('Country', _countryController),
-              _buildTextField('Postal Code', _postalCodeController),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _saveChanges,
-                child: Text('Save Changes'),
-              ),
-            ],
+      body: Center(
+        child: Container(
+          padding: const EdgeInsets.all(16.0),
+          constraints: BoxConstraints(maxWidth: 600), // Restrict the form width on larger screens
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                _buildTextField('Name', _nameController),
+                _buildTextField('Email', _emailController, isEmail: true),
+                _buildTextField('Phone', _phoneController),
+                _buildTextField('Address', _addressController),
+                _buildTextField('City', _cityController),
+                _buildTextField('State', _stateController),
+                _buildTextField('Country', _countryController),
+                _buildTextField('Postal Code', _postalCodeController),
+                SizedBox(height: 20),
+                _buildSaveButton(), // Custom save button
+              ],
+            ),
           ),
         ),
       ),
@@ -103,7 +104,9 @@ Future<void> _saveChanges() async {
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
-          border: OutlineInputBorder(),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10), // Rounded border
+          ),
         ),
         keyboardType: isEmail ? TextInputType.emailAddress : TextInputType.text,
         validator: (value) {
@@ -113,6 +116,22 @@ Future<void> _saveChanges() async {
           return null;
         },
       ),
+    );
+  }
+
+  // Helper method to build the Save Changes button
+  Widget _buildSaveButton() {
+    return ElevatedButton(
+      onPressed: _saveChanges,
+      style: ElevatedButton.styleFrom(
+        padding: EdgeInsets.symmetric(vertical: 15),
+        textStyle: TextStyle(fontSize: 18),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10), // Add rounded corners
+        ),
+        backgroundColor: Colors.blue, // Set the button color
+      ),
+      child: Text('Save Changes'),
     );
   }
 }
