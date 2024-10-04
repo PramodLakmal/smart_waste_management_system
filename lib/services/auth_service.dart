@@ -6,16 +6,16 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Sign in method
-  Future<User?> signIn(String email, String password) async {
+  Future<bool> signIn(String email, String password) async {
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      return userCredential.user;
+      return true; // Return true if login is successful
     } catch (e) {
       print(e.toString());
-      return null;
+      return false; // Return false if login fails
     }
   }
 

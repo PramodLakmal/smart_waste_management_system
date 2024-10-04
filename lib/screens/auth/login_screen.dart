@@ -12,17 +12,16 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
+  String? _errorMessage; // Store error message
 
   @override
   Widget build(BuildContext context) {
-    // Using LayoutBuilder to adjust layout based on screen size
     return Scaffold(
       appBar: AppBar(
         title: Text('Login'),
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          // Get screen width and height
           double screenWidth = constraints.maxWidth;
           double formWidth = screenWidth > 600 ? 500 : double.infinity; // Make form narrower for larger screens
 
@@ -34,6 +33,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    // Display error message if exists
+                    if (_errorMessage != null) ...[
+                      Text(
+                        _errorMessage!,
+                        style: TextStyle(color: Colors.red),
+                      ),
+                      SizedBox(height: 16), // Space before input fields
+                    ],
+
                     // Email input field
                     InputField(
                       controller: _emailController,
@@ -53,11 +61,25 @@ class _LoginScreenState extends State<LoginScreen> {
                     CustomButton(
                       text: 'Login',
                       onPressed: () async {
-                        await _authService.signIn(
+                        // Reset the error message
+                        setState(() {
+                          _errorMessage = null;
+                        });
+
+                        // Attempt to sign in
+                        bool success = await _authService.signIn(
                           _emailController.text,
                           _passwordController.text,
                         );
-                        Navigator.pushReplacementNamed(context, '/home');
+
+                        // If login is successful, navigate to home, else show error
+                        if (success) {
+                          Navigator.pushReplacementNamed(context, '/home');
+                        } else {
+                          setState(() {
+                            _errorMessage = 'Invalid email or password'; // Set error message
+                          });
+                        }
                       },
                     ),
                     SizedBox(height: 20), // Add space between buttons

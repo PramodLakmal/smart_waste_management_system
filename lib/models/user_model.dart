@@ -1,16 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserModel {
-  String uid;
-  String email;
-  String name;
-  String phone;
-  String role;
-  String address;
-  String city;
-  String state;
-  String country;
-  String postalCode;
+  String uid; // User ID
+  String email; // User email
+  String name; // User name
+  String phone; // User phone number
+  String role; // User role (e.g., 'admin', 'user', etc.)
+  String address; // User address
+  String city; // User city
+  String state; // User state
+  String country; // User country
+  String postalCode; // User postal code
 
   UserModel({
     required this.uid,
@@ -57,9 +57,10 @@ class UserModel {
     );
   }
 
-  // **New method: Create a UserModel object from a Firestore DocumentSnapshot**
+  // Create a UserModel object from a Firestore DocumentSnapshot
   factory UserModel.fromDocument(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    // Ensure data is not null and cast it to a Map
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>? ?? {};
     return UserModel.fromMap(data);
   }
 }
