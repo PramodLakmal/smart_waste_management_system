@@ -6,12 +6,14 @@ class WasteRecord {
   final String wasteType;
   final double weight;
   final String wasteCollector;
+  final String status; // New variable for status
 
   WasteRecord({
     required this.id,
     required this.wasteType,
     required this.weight,
     required this.wasteCollector,
+    required this.status,
   });
 
   factory WasteRecord.fromFirestore(DocumentSnapshot doc) {
@@ -21,7 +23,7 @@ class WasteRecord {
       id: doc.id,
       wasteType: data['wasteType'] ?? '',
       weight: (data['weight'] ?? 0).toDouble(),
-      wasteCollector: data['wasteCollector'] ?? '',
+      wasteCollector: data['wasteCollector'] ?? '', status: data['status'] ?? '',
     );
   }
 }

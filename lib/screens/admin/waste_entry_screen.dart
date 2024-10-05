@@ -18,6 +18,7 @@ class _WasteEntryScreenState extends State<WasteEntryScreen> {
   final _formKey = GlobalKey<FormState>();
   String _wasteType = '';
   double _weight = 0.0;
+  String _status = 'Pending'; // Default status
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +69,7 @@ class _WasteEntryScreenState extends State<WasteEntryScreen> {
                       wasteType: _wasteType,
                       weight: _weight,
                       wasteCollector: wasteCollector,
+                      status: _status,
                     );
                   }
                 },
