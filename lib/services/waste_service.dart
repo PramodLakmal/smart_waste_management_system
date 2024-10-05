@@ -1,15 +1,40 @@
+// services/waste_service.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:smart_waste_management_system/models/waste_record_model.dart';
+import 'package:smart_waste_management_system/models/schedule_model.dart';
+import '../models/waste_record_model.dart';
 
 class WasteService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final CollectionReference wasteRecordsCollection =
+      FirebaseFirestore.instance.collection('wasteRecords');
 
-  Future<void> addWasteRecord(WasteRecord wasteRecord) async {
-    await _db.collection('waste_records').add(wasteRecord.toMap());
+  // Fetch waste records for a specific waste collector
+  Future<List<WasteRecord>> fetchWasteRecordsByCollector(String wasteCollector) async {
+    try {
+      QuerySnapshot querySnapshot = await wasteRecordsCollection
+          .where('wasteCollector', isEqualTo: wasteCollector)
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => WasteRecord.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      print('Error fetching waste records: $e');
+      return [];
+    }
   }
 
-  Future<List<WasteRecord>> getWasteRecordsByRoute(String routeId) async {
-    QuerySnapshot snapshot = await _db.collection('waste_records').where('routeId', isEqualTo: routeId).get();
-    return snapshot.docs.map((doc) => WasteRecord.fromFirestore(doc)).toList();
+  // Add new waste record to Firestore
+  Future<void> addWasteRecord(WasteRecord wasteRecord) async {
+    try {
+      await wasteRecordsCollection.add({
+        'wasteType': wasteRecord.wasteType,
+        'weight': wasteRecord.weight,
+        'wasteCollector': wasteRecord.wasteCollector,
+      });
+    } catch (e) {
+      print('Error adding waste record: $e');
+      throw e;
+    }
   }
 }
+

@@ -1,98 +1,142 @@
 import 'package:flutter/material.dart';
-import 'package:smart_waste_management_system/models/route_model.dart';
-import 'package:smart_waste_management_system/screens/admin/driver_records_screen.dart';
-import 'package:smart_waste_management_system/screens/admin/route_entry_screen.dart';
-import 'package:smart_waste_management_system/screens/admin/waste_entry_screen.dart';
-import 'package:smart_waste_management_system/services/route_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../models/schedule_model.dart';
+import '../../models/waste_record_model.dart';
+import '../../services/waste_service.dart';
+import 'waste_details_screen.dart';
+import 'waste_entry_screen.dart';
 
 class RouteMonitoringScreen extends StatefulWidget {
+  final String routeId;
+  final String wasteCollector;
+
+  RouteMonitoringScreen({required this.routeId, required this.wasteCollector});
+
   @override
   _RouteMonitoringScreenState createState() => _RouteMonitoringScreenState();
 }
 
 class _RouteMonitoringScreenState extends State<RouteMonitoringScreen> {
-  final RouteService _routeService = RouteService();
-  late Future<List<RouteModel>> _routes;
+  List<Schedule> _schedules = []; // List to hold the fetched schedules
+  bool _isLoading = true; // To show loading indicator
+  int? _selectedScheduleIndex; // To hold the selected schedule index
+  final WasteService _wasteService = WasteService();
 
   @override
   void initState() {
     super.initState();
-    _routes = _routeService.getAllRoutes();
+    _fetchSchedules(); // Fetch schedules when the screen is initialized
+  }
+
+  // Method to fetch all schedules from Firestore
+  Future<void> _fetchSchedules() async {
+    try {
+      QuerySnapshot querySnapshot =
+          await FirebaseFirestore.instance.collection('schedules').get();
+
+      setState(() {
+        _schedules = querySnapshot.docs
+            .map((doc) => Schedule.fromFirestore(doc)) // Map Firestore documents to Schedule model
+            .toList();
+        _isLoading = false; // Set loading to false after fetching data
+      });
+    } catch (e) {
+      // Handle any errors
+      print("Error fetching schedules: $e");
+      setState(() {
+        _isLoading = false; // Stop loading if there's an error
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Route Monitoring'),
+        title: Text('Your Schedules', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
       ),
-      body: FutureBuilder<List<RouteModel>>(
-        future: _routes,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-
-          List<RouteModel> routes = snapshot.data ?? [];
-
-          return ListView.builder(
-            itemCount: routes.length,
-            itemBuilder: (context, index) {
-              RouteModel route = routes[index];
-
-              // Ensure driverId and routeId are non-null before proceeding
-              String? driverName = route.driverName ?? 'Unknown';
-              String? routeId = route.id ?? 'N/A';
-              String? driverId = route.driverId ?? 'N/A';
-
-              return ListTile(
-                title: Text(route.routeName ?? 'Unknown Route'),
-                subtitle: Text('Driver: $driverName  |  Vehicle: ${route.vehicleNumber ?? 'Unknown Vehicle'}'),
-                onTap: () {
-                  if (routeId != 'N/A') {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => WasteEntryScreen(routeId: route.id),
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Route ID is missing. Cannot open waste entry screen.")),
-                    );
-                  }
-                },
-                trailing: IconButton(
-                  icon: Icon(Icons.person),
-                  onPressed: () {
-                    
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DriverRecordsScreen(
-                            routeId: route.id, driverId: '',
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Available Schedules',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 16),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: _schedules.length,
+                      itemBuilder: (context, index) {
+                        final schedule = _schedules[index];
+                        return Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(color: Colors.teal),
                           ),
-                        ),
-                      ); 
-                  },
-                ),
-              );
-            },
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => RouteEntryScreen()),
-          );
-        },
-        child: Icon(Icons.add),
+                          margin: EdgeInsets.symmetric(vertical: 8.0),
+                          child: ListTile(
+                            title: Row(
+                              children: [
+                                Radio(
+                                  value: index,
+                                  groupValue: _selectedScheduleIndex,
+                                  activeColor: Colors.teal,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _selectedScheduleIndex = value as int?;
+                                    });
+                                  },
+                                ),
+                                Text('${schedule.collectionZone} Route', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            subtitle: Text(
+                              'Vehicle Number: ${schedule.vehicleNumber}\nWaste Collector: ${schedule.wasteCollector}',
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _selectedScheduleIndex != null
+                        ? () {
+                            // Navigate to WasteDetailsScreen when a schedule is selected
+                            _viewWasteDetails(_schedules[_selectedScheduleIndex!].wasteCollector);
+                          }
+                        : null, // Disable the button if no schedule is selected
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: Colors.teal, // Button color
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Start now',
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+    );
+  }
+
+  void _viewWasteDetails(String wasteCollector) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => WasteDetailsScreen(
+          wasteCollector: wasteCollector,
+        ),
       ),
     );
   }
