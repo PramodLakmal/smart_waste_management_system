@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:firebase_auth/firebase_auth.dart'; // For FirebaseAuth
 import 'package:cloud_firestore/cloud_firestore.dart'; // For Firestore
+import 'package:smart_waste_management_system/screens/admin/schedule_waste_collection.dart';
 import '../widgets/responsive_nav_bar.dart'; // Import the responsive nav bar
 import '../screens/profile/profile_screen.dart';
 import '../screens/admin/user_management_screen.dart'; // Import the UserManagementScreen
+import '../screens/admin/schedule_waste_collection.dart'; // Import WasteCollectionDashboard
+
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -32,8 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
           .get();
 
       setState(() {
-        _isAdmin = userDoc['role'] ==
-            'admin'; // Assuming 'role' field contains the user role
+        _isAdmin = userDoc['role'] == 'admin'; // Assuming 'role' field contains the user role
       });
     }
   }
@@ -98,7 +100,12 @@ class _HomeScreenState extends State<HomeScreen> {
           SizedBox(height: 10),
           ElevatedButton(
             onPressed: () {
-              // Navigate to Schedule Waste Collections
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => WasteCollectionSchedule(), // Navigate to WasteCollectionDashboard
+                ),
+              );
             },
             child: Text('Schedule Waste Collections'),
           ),
