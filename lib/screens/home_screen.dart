@@ -10,6 +10,7 @@ import 'admin/route_monitoring_screen.dart'; // Import the RouteMonitoringScreen
 import '../screens/admin/schedule_waste_collection.dart'; // Import WasteCollectionDashboard
 import '../../models/schedule_model.dart'; // Import the Schedule model
 import '../screens/admin/confirm_bin_screen.dart'; // Import the ConfirmBinScreen
+import '../screens/admin/waste_collection_requests_screen.dart'; // Import the WasteCollectionRequestsScreen
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -182,6 +183,18 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
             child: Text('Schedule Waste Collections'),
+          ),
+          SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => WasteCollectionRequestsScreen(),
+                ),
+              );
+            },
+            child: Text('View Waste Collection Requests'),
           ),
           SizedBox(height: 10),
           ElevatedButton(
