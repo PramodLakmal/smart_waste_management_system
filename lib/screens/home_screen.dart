@@ -8,6 +8,7 @@ import '../screens/profile/profile_screen.dart';
 import '../screens/admin/user_management_screen.dart'; // Import the UserManagementScreen
 import 'admin/route_monitoring_screen.dart'; // Import the RouteMonitoringScreen
 import '../screens/admin/schedule_waste_collection.dart'; // Import WasteCollectionDashboard
+import '../../models/schedule_model.dart'; // Import the Schedule model
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -61,6 +62,20 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Method to fetch the schedule data
+  Future<Schedule?> _fetchSchedule() async {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('schedules')
+        .get();
+
+    // Check if there are any documents
+    if (querySnapshot.docs.isNotEmpty) {
+      DocumentSnapshot doc = querySnapshot.docs.first; // Get the first document
+      return Schedule.fromFirestore(doc); // Create Schedule object
+    }
+    return null; // Return null if no schedule is found
+  }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -109,8 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => UserManagementScreen(),
-                ),
+                    builder: (context) => UserManagementScreen()), // Navigate to UserManagementScreen
               );
             },
             child: Text('User Management'),
@@ -130,12 +144,28 @@ class _HomeScreenState extends State<HomeScreen> {
           SizedBox(height: 10),
           ElevatedButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => RouteMonitoringScreen(),
-                ),
-              );
+              // Navigate to Waste Collection Requests
+            },
+            child: Text('Waste Collection Requests'),
+          ),
+          SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () async {
+              Schedule? schedule = await _fetchSchedule(); // Fetch the schedule
+
+              if (schedule != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RouteMonitoringScreen(routeId: '', wasteCollector: '',), // Pass the fetched schedule
+                  ),
+                );
+              } else {
+                // Handle the case when no schedule is found
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('No schedules found')),
+                );
+              }
             },
             child: Text('Route Monitoring'),
           ),
