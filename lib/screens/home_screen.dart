@@ -9,6 +9,7 @@ import '../screens/admin/user_management_screen.dart'; // Import the UserManagem
 import 'admin/route_monitoring_screen.dart'; // Import the RouteMonitoringScreen
 import '../screens/admin/schedule_waste_collection.dart'; // Import WasteCollectionDashboard
 import '../../models/schedule_model.dart'; // Import the Schedule model
+import '../screens/admin/confirm_bin_screen.dart'; // Import the ConfirmBinScreen
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -128,6 +129,18 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
             child: Text('User Management'),
+          ),
+          SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ConfirmBinScreen(), // Navigate to ConfirmBinScreen
+                ),
+              );
+            },
+            child: Text('Waste Bin Registration Requests'),
           ),
           SizedBox(height: 10),
           ElevatedButton(

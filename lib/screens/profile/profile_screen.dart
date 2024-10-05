@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/user_model.dart'; // Import the UserModel
 import 'edit_profile_screen.dart'; // Import the EditProfileScreen
 import 'package:flutter/foundation.dart'; // For kIsWeb
+import '../bin/update_bin_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -12,7 +13,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final AuthService _authService = AuthService(); // Create an instance of AuthService
+  final AuthService _authService =
+      AuthService(); // Create an instance of AuthService
   UserModel? _currentUserDetails;
   bool _isLoading = true;
 
@@ -38,8 +40,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .get();
 
       setState(() {
-        _currentUserDetails = UserModel.fromDocument(userDoc); // Create a UserModel from the document
-        _isAdmin = userDoc['role'] == 'admin'; // Determine if the user is an admin
+        _currentUserDetails = UserModel.fromDocument(
+            userDoc); // Create a UserModel from the document
+        _isAdmin =
+            userDoc['role'] == 'admin'; // Determine if the user is an admin
         _isLoading = false;
       });
     }
@@ -47,7 +51,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // Handle the back button press to navigate to the home screen
   Future<bool> _onWillPop() async {
-    Navigator.pushReplacementNamed(context, '/home'); // Navigate to home when back is pressed
+    Navigator.pushReplacementNamed(
+        context, '/home'); // Navigate to home when back is pressed
     return false; // Prevent default back navigation
   }
 
@@ -57,12 +62,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       onWillPop: _onWillPop, // Handle back button press
       child: Scaffold(
         body: _isLoading
-            ? Center(child: CircularProgressIndicator()) // Show loading spinner while fetching data
+            ? Center(
+                child:
+                    CircularProgressIndicator()) // Show loading spinner while fetching data
             : SingleChildScrollView(
                 child: Center(
                   child: Container(
                     padding: const EdgeInsets.all(16.0),
-                    constraints: BoxConstraints(maxWidth: 600), // Constrain width for larger screens
+                    constraints: BoxConstraints(
+                        maxWidth: 600), // Constrain width for larger screens
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
@@ -77,7 +85,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           },
                           child: _isProfileExpanded
                               ? _buildProfileDetails() // Show profile details when expanded
-                              : SizedBox.shrink(), // Collapse the profile details
+                              : SizedBox
+                                  .shrink(), // Collapse the profile details
                         ),
 
                         SizedBox(height: 20),
@@ -165,12 +174,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Divider(),
           _buildInfoTile(Icons.email, 'Email', _currentUserDetails!.email),
           _buildInfoTile(Icons.phone, 'Phone', _currentUserDetails!.phone),
-          _buildInfoTile(Icons.location_on, 'Address', _currentUserDetails!.address),
-          _buildInfoTile(Icons.location_city, 'City', _currentUserDetails!.city),
+          _buildInfoTile(
+              Icons.location_on, 'Address', _currentUserDetails!.address),
+          _buildInfoTile(
+              Icons.location_city, 'City', _currentUserDetails!.city),
           _buildInfoTile(Icons.map, 'State', _currentUserDetails!.state),
           _buildInfoTile(Icons.flag, 'Country', _currentUserDetails!.country),
-          _buildInfoTile(Icons.markunread_mailbox, 'Postal Code', _currentUserDetails!.postalCode),
-          
+          _buildInfoTile(Icons.markunread_mailbox, 'Postal Code',
+              _currentUserDetails!.postalCode),
+
           // Edit Profile Button inside My Profile
           SizedBox(height: 20),
           ElevatedButton(
@@ -179,7 +191,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => EditProfileScreen(userModel: _currentUserDetails!),
+                  builder: (context) =>
+                      EditProfileScreen(userModel: _currentUserDetails!),
                 ),
               );
 
@@ -205,28 +218,72 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
 // Method to build the list of bins when expanded
-Widget _buildBinList() {
-  return Padding(
-    padding: const EdgeInsets.all(20.0),
-    child: StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('bins')
-          .where('userId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return Center(child: CircularProgressIndicator());
-        }
-        final bins = snapshot.data!.docs;
-        if (bins.isEmpty) {
+  Widget _buildBinList() {
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('bins')
+            .where('userId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Center(child: CircularProgressIndicator());
+          }
+          final bins = snapshot.data!.docs;
+          if (bins.isEmpty) {
+            return Column(
+              children: [
+                Text('No bins added yet.'),
+                SizedBox(height: 20),
+                // Add Bin button
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushNamed(
+                        context, '/add-bin'); // Navigate to Add Bin screen
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent, // Set button color
+                    foregroundColor: Colors.white, // Set text color
+                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                    textStyle: TextStyle(fontSize: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(12), // Add rounded corners
+                    ),
+                  ),
+                  child: Text('Add Bin'),
+                ),
+              ],
+            );
+          }
           return Column(
             children: [
-              Text('No bins added yet.'),
+              ...bins.map((bin) {
+                return ListTile(
+                  leading: Icon(Icons.delete, color: Colors.green),
+                  title: Text(bin['nickname']),
+                  subtitle: Text('Type: ${bin['type']}'),
+                  trailing: ElevatedButton(
+                    onPressed: () {
+                      // Navigate to EditBinScreen with bin data
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditBinScreen(binData: bin),
+                        ),
+                      );
+                    },
+                    child: Text('Edit'),
+                  ),
+                );
+              }).toList(),
               SizedBox(height: 20),
-              // Add Bin button
+              // Add Bin button at the end of the bin list
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, '/add-bin'); // Navigate to Add Bin screen
+                  Navigator.pushNamed(
+                      context, '/add-bin'); // Navigate to Add Bin screen
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blueAccent, // Set button color
@@ -234,47 +291,18 @@ Widget _buildBinList() {
                   padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                   textStyle: TextStyle(fontSize: 18),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12), // Add rounded corners
+                    borderRadius:
+                        BorderRadius.circular(12), // Add rounded corners
                   ),
                 ),
                 child: Text('Add Bin'),
               ),
             ],
           );
-        }
-        return Column(
-          children: [
-            ...bins.map((bin) {
-              return ListTile(
-                leading: Icon(Icons.delete, color: Colors.green),
-                title: Text(bin['nickname']),
-                subtitle: Text('Type: ${bin['type']}'),
-              );
-            }).toList(),
-            SizedBox(height: 20),
-            // Add Bin button at the end of the bin list
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/add-bin'); // Navigate to Add Bin screen
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent, // Set button color
-                foregroundColor: Colors.white, // Set text color
-                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                textStyle: TextStyle(fontSize: 18),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12), // Add rounded corners
-                ),
-              ),
-              child: Text('Add Bin'),
-            ),
-          ],
-        );
-      },
-    ),
-  );
-}
-
+        },
+      ),
+    );
+  }
 
   // Modern Sign Out button
   Widget _buildSignOutButton() {
