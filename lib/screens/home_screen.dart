@@ -10,6 +10,7 @@ import 'admin/route_monitoring_screen.dart'; // Import the RouteMonitoringScreen
 import '../screens/admin/schedule_waste_collection.dart'; // Import WasteCollectionDashboard
 import '../../models/schedule_model.dart'; // Import the Schedule model
 import '../screens/admin/confirm_bin_screen.dart'; // Import the ConfirmBinScreen
+import '../screens/admin/waste_collection_requests_screen.dart'; // Import the WasteCollectionRequestsScreen
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -147,65 +148,91 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         SizedBox(height: 20),
         if (_isAdmin) ...[
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>
-                        UserManagementScreen()), // Navigate to UserManagementScreen
-              );
-            },
-            child: Text('User Management'),
-          ),
-          SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      ConfirmBinScreen(), // Navigate to ConfirmBinScreen
+          Expanded(
+            child: GridView.count(
+              crossAxisCount: 2,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              padding: EdgeInsets.all(10),
+              children: [
+                _buildAdminCard(
+                  icon: Icons.people,
+                  title: 'User Management',
+                  description: 'Manage Users in the System',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UserManagementScreen(),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-            child: Text('Waste Bin Registration Requests'),
-          ),
-          SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => WasteCollectionSchedule(),
+                _buildAdminCard(
+                  icon: Icons.add_box,
+                  title: 'Bin Registration',
+                  description: 'Review and Confirm Bins',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ConfirmBinScreen(),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-            child: Text('Schedule Waste Collections'),
-          ),
-          SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () async {
-              Schedule? schedule = await _fetchSchedule(); // Fetch the schedule
-
-              if (schedule != null) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => RouteMonitoringScreen(
-                      routeId: '',
-                      wasteCollector: '',
-                    ), // Pass the fetched schedule
-                  ),
-                );
-              } else {
-                // Handle the case when no schedule is found
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('No schedules found')),
-                );
-              }
-            },
-            child: Text('Route Monitoring'),
+                _buildAdminCard(
+                  icon: Icons.schedule,
+                  title: 'Waste Collection Schedule',
+                  description: 'Schedule Waste Collection',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => WasteCollectionSchedule(),
+                      ),
+                    );
+                  },
+                ),
+                _buildAdminCard(
+                  icon: Icons.list,
+                  title: 'View Collection Requests',
+                  description: 'View all Waste Collection Requests',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            WasteCollectionRequestsScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildAdminCard(
+                  icon: Icons.map,
+                  title: 'Route Monitoring',
+                  description: 'Monitor Waste Collection Routes',
+                  onTap: () async {
+                    Schedule? schedule = await _fetchSchedule();
+                    if (schedule != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RouteMonitoringScreen(
+                            routeId: '',
+                            wasteCollector: '',
+                          ),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('No schedules found')),
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
           ),
         ],
         if (_isUser) ...[
@@ -239,7 +266,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   itemCount: bins.length,
                   itemBuilder: (context, index) {
-                    final binData = bins[index].data() as Map<String, dynamic>;
+                    final binData =
+                        bins[index].data() as Map<String, dynamic>;
                     return _buildBinCard(binData);
                   },
                 );
@@ -259,8 +287,43 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildAdminCard(
+      {required IconData icon,
+      required String title,
+      required String description,
+      required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Card(
+        elevation: 5,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 40, color: Colors.green),
+              SizedBox(height: 10),
+              Text(
+                title,
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 5),
+              Text(
+                description,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildBinCard(Map<String, dynamic> binData) {
-    // Only send the request if the bin is filled 100% and collectionRequestSent is false
     if (binData['filledPercentage'] == 100 &&
         binData['userId'] != null &&
         !(binData['collectionRequestSent'] ?? false)) {
