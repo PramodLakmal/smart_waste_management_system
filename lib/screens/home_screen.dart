@@ -9,6 +9,7 @@ import '../screens/admin/user_management_screen.dart'; // Import the UserManagem
 import 'admin/route_monitoring_screen.dart'; // Import the RouteMonitoringScreen
 import '../screens/admin/schedule_waste_collection.dart'; // Import WasteCollectionDashboard
 import '../../models/schedule_model.dart'; // Import the Schedule model
+import '../screens/admin/confirm_bin_screen.dart'; // Import the ConfirmBinScreen
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -57,16 +58,17 @@ class _HomeScreenState extends State<HomeScreen> {
           .get();
 
       setState(() {
-        _bins = binDocs.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+        _bins = binDocs.docs
+            .map((doc) => doc.data() as Map<String, dynamic>)
+            .toList();
       });
     }
   }
 
   // Method to fetch the schedule data
   Future<Schedule?> _fetchSchedule() async {
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('schedules')
-        .get();
+    QuerySnapshot querySnapshot =
+        await FirebaseFirestore.instance.collection('schedules').get();
 
     // Check if there are any documents
     if (querySnapshot.docs.isNotEmpty) {
@@ -74,6 +76,35 @@ class _HomeScreenState extends State<HomeScreen> {
       return Schedule.fromFirestore(doc); // Create Schedule object
     }
     return null; // Return null if no schedule is found
+  }
+
+  // Method to send waste collection request
+  Future<void> _sendWasteCollectionRequest(
+      String binId, String userId, String binNickname) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('wasteCollectionRequests')
+          .add({
+        'userId': userId,
+        'binId': binId,
+        'requestedTime': FieldValue.serverTimestamp(),
+        'isCollected': false, // Initially set to false
+      });
+
+      // Update the bin's collectionRequestSent status to true
+      await FirebaseFirestore.instance.collection('bins').doc(binId).update({
+        'collectionRequestSent': true,
+      });
+
+      // Show a snackbar with the bin nickname
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content:
+                Text('Waste collection request sent for bin $binNickname')),
+      );
+    } catch (e) {
+      print('Error sending waste collection request: $e');
+    }
   }
 
   void _onItemTapped(int index) {
@@ -95,9 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           : null,
       body: Center(
-        child: _selectedIndex == 0
-            ? _buildHomeContent()
-            : ProfileScreen(),
+        child: _selectedIndex == 0 ? _buildHomeContent() : ProfileScreen(),
       ),
       bottomNavigationBar: !kIsWeb
           ? ResponsiveNavBar(
@@ -117,17 +146,30 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 20),
-
         if (_isAdmin) ...[
           ElevatedButton(
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => UserManagementScreen()), // Navigate to UserManagementScreen
+                    builder: (context) =>
+                        UserManagementScreen()), // Navigate to UserManagementScreen
               );
             },
             child: Text('User Management'),
+          ),
+          SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ConfirmBinScreen(), // Navigate to ConfirmBinScreen
+                ),
+              );
+            },
+            child: Text('Waste Bin Registration Requests'),
           ),
           SizedBox(height: 10),
           ElevatedButton(
@@ -143,13 +185,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           SizedBox(height: 10),
           ElevatedButton(
-            onPressed: () {
-              // Navigate to Waste Collection Requests
-            },
-            child: Text('Waste Collection Requests'),
-          ),
-          SizedBox(height: 10),
-          ElevatedButton(
             onPressed: () async {
               Schedule? schedule = await _fetchSchedule(); // Fetch the schedule
 
@@ -157,7 +192,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => RouteMonitoringScreen(routeId: '', wasteCollector: '',), // Pass the fetched schedule
+                    builder: (context) => RouteMonitoringScreen(
+                      routeId: '',
+                      wasteCollector: '',
+                    ), // Pass the fetched schedule
                   ),
                 );
               } else {
@@ -170,7 +208,6 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Text('Route Monitoring'),
           ),
         ],
-
         if (_isUser) ...[
           Text(
             'My Bins',
@@ -181,7 +218,8 @@ class _HomeScreenState extends State<HomeScreen> {
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('bins')
-                  .where('userId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+                  .where('userId',
+                      isEqualTo: FirebaseAuth.instance.currentUser!.uid)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
@@ -196,7 +234,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisCount: 2,
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
-                    childAspectRatio: 0.8, // Adjust the aspect ratio for better fitting
+                    childAspectRatio:
+                        0.8, // Adjust the aspect ratio for better fitting
                   ),
                   itemCount: bins.length,
                   itemBuilder: (context, index) {
@@ -208,7 +247,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
-
         if (!_isAdmin && !_isUser)
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -222,6 +260,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBinCard(Map<String, dynamic> binData) {
+    // Only send the request if the bin is filled 100% and collectionRequestSent is false
+    if (binData['filledPercentage'] == 100 &&
+        binData['userId'] != null &&
+        !(binData['collectionRequestSent'] ?? false)) {
+      _sendWasteCollectionRequest(
+          binData['binId'], binData['userId'], binData['nickname']);
+    }
+
     return Card(
       elevation: 5,
       shape: RoundedRectangleBorder(
@@ -230,7 +276,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Use spaceEvenly to balance content
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Text(
               binData['nickname'] ?? 'Unnamed Bin',
@@ -255,10 +301,17 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             SizedBox(height: 10),
+            if (binData['filledPercentage'] == 100)
+              Text(
+                'Collection Request Sent',
+                style: TextStyle(
+                    color: Colors.orange, fontWeight: FontWeight.bold),
+              ),
             if (!(binData['confirmed'] ?? false))
               Text(
                 'Pending',
-                style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: Colors.orange, fontWeight: FontWeight.bold),
               ),
           ],
         ),

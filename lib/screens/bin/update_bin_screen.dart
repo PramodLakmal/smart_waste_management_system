@@ -1,23 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart'; // For image upload
 import 'dart:io'; // For File type
 import 'package:image_picker/image_picker.dart'; // For picking images
+import 'package:firebase_storage/firebase_storage.dart'; // For image upload
 
-class AddBinScreen extends StatefulWidget {
+class EditBinScreen extends StatefulWidget {
+  final DocumentSnapshot binData; // Pass bin data from the profile screen
+
+  EditBinScreen({required this.binData});
+
   @override
-  _AddBinScreenState createState() => _AddBinScreenState();
+  _EditBinScreenState createState() => _EditBinScreenState();
 }
 
-class _AddBinScreenState extends State<AddBinScreen> {
+class _EditBinScreenState extends State<EditBinScreen> {
   final _formKey = GlobalKey<FormState>();
-  String _selectedBinType = 'Electrical Waste'; // Default bin type
+  String _selectedBinType = 'Electrical Waste';
   String _nickname = '';
   String _description = '';
   double _weight = 0.0;
-  File? _imageFile; // To store the selected image
+  File? _imageFile;
   final picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBinData(); // Load existing bin data
+  }
+
+  // Load existing bin data into the form
+  void _loadBinData() {
+    _nickname = widget.binData['nickname'];
+    _selectedBinType = widget.binData['type'];
+    _description = widget.binData['description'] ?? '';
+    _weight = widget.binData['weight'].toDouble();
+  }
 
   Future<void> _selectImage() async {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -28,61 +45,45 @@ class _AddBinScreenState extends State<AddBinScreen> {
     }
   }
 
-  Future<void> _addBin() async {
+  Future<void> _updateBin() async {
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
 
-    User? currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
-      String userId = currentUser.uid;
+    // Reference to the bin document in Firestore
+    DocumentReference binRef = FirebaseFirestore.instance.collection('bins').doc(widget.binData.id);
 
-      // Reference to the Firestore collection
-      CollectionReference bins = FirebaseFirestore.instance.collection('bins');
-
-      // Create a new document reference, letting Firestore generate the ID
-      DocumentReference newBinRef = bins.doc();
-
-      // Upload the image to Firebase Storage if available
-      String? imageUrl;
-      if (_imageFile != null) {
-        String imagePath = 'bin_images/${newBinRef.id}.jpg';
-        TaskSnapshot uploadTask = await FirebaseStorage.instance
-            .ref(imagePath)
-            .putFile(_imageFile!);
-        imageUrl = await uploadTask.ref.getDownloadURL();
-      }
-
-      // Prepare bin data
-      Map<String, dynamic> binData = {
-        'userId': userId, // Store the correct user ID
-        'binId': newBinRef.id, // Use the document ID as the bin ID
-        'type': _selectedBinType,
-        'nickname': _nickname,
-        'description': _description,
-        'weight': _weight,
-        'imageUrl': imageUrl,
-        'filledPercentage': 0, // Initially set to 0 (can be updated later)
-        'createdAt': FieldValue.serverTimestamp(), // Store creation time
-        'confirmed': false, // Admin needs to confirm it
-        'collectionRequestSent': false
-      };
-
-      // Add the bin to Firestore
-      await newBinRef.set(binData);
-
-      // Navigate back or show a success message
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Bin added successfully!'),
-      ));
-      Navigator.pop(context);
+    // Upload the image to Firebase Storage if available
+    String? imageUrl = widget.binData['imageUrl'];
+    if (_imageFile != null) {
+      String imagePath = 'bin_images/${binRef.id}.jpg';
+      TaskSnapshot uploadTask = await FirebaseStorage.instance
+          .ref(imagePath)
+          .putFile(_imageFile!);
+      imageUrl = await uploadTask.ref.getDownloadURL();
     }
+
+    // Update the bin data
+    await binRef.update({
+      'nickname': _nickname,
+      'type': _selectedBinType,
+      'description': _description,
+      'weight': _weight,
+      'imageUrl': imageUrl,
+    });
+
+    // Show success message
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('Bin updated successfully!'),
+    ));
+
+    Navigator.pop(context); // Navigate back to the previous screen
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add New Bin'),
+        title: Text('Edit Bin'),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
@@ -120,6 +121,7 @@ class _AddBinScreenState extends State<AddBinScreen> {
 
               // Nickname field
               TextFormField(
+                initialValue: _nickname,
                 decoration: InputDecoration(labelText: 'Bin Nickname'),
                 onSaved: (value) {
                   _nickname = value!;
@@ -136,6 +138,7 @@ class _AddBinScreenState extends State<AddBinScreen> {
 
               // Weight field
               TextFormField(
+                initialValue: _weight.toString(),
                 decoration: InputDecoration(labelText: 'Weight (kg)'),
                 keyboardType: TextInputType.number,
                 onSaved: (value) {
@@ -156,6 +159,7 @@ class _AddBinScreenState extends State<AddBinScreen> {
 
               // Description field (optional)
               TextFormField(
+                initialValue: _description,
                 decoration: InputDecoration(labelText: 'Description (optional)'),
                 onSaved: (value) {
                   _description = value ?? '';
@@ -176,14 +180,21 @@ class _AddBinScreenState extends State<AddBinScreen> {
                       width: 150,
                       fit: BoxFit.cover,
                     )
-                  : SizedBox.shrink(),
+                  : widget.binData['imageUrl'] != null
+                      ? Image.network(
+                          widget.binData['imageUrl'],
+                          height: 150,
+                          width: 150,
+                          fit: BoxFit.cover,
+                        )
+                      : SizedBox.shrink(),
 
               SizedBox(height: 16.0),
 
               // Submit button
               ElevatedButton(
-                onPressed: _addBin,
-                child: Text('Add Bin'),
+                onPressed: _updateBin,
+                child: Text('Update Bin'),
               ),
             ],
           ),
