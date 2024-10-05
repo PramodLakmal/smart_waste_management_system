@@ -41,4 +41,12 @@ class BinService {
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) => Bin.fromDocument(doc)).toList());
   }
+
+  Stream<List<Bin>> getBinsForCollector(String wasteCollector) {
+    return _db
+        .collection('bins')
+        .where('wasteCollector', isEqualTo: wasteCollector)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => Bin.fromDocument(doc)).toList());
+  }
 }

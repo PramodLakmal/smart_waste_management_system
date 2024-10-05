@@ -30,9 +30,20 @@ class WasteService {
         'wasteType': wasteRecord.wasteType,
         'weight': wasteRecord.weight,
         'wasteCollector': wasteRecord.wasteCollector,
+        'status': wasteRecord.status,
       });
     } catch (e) {
       print('Error adding waste record: $e');
+      throw e;
+    }
+  }
+
+  // Update waste record status
+  Future<void> updateWasteStatus(String id, String status) async {
+    try {
+      await wasteRecordsCollection.doc(id).update({'status': status});
+    } catch (e) {
+      print('Error updating waste record status: $e');
       throw e;
     }
   }
