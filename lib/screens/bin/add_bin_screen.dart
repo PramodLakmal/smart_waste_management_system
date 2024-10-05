@@ -63,7 +63,8 @@ class _AddBinScreenState extends State<AddBinScreen> {
         'imageUrl': imageUrl,
         'filledPercentage': 0, // Initially set to 0 (can be updated later)
         'createdAt': FieldValue.serverTimestamp(), // Store creation time
-        'confirmed': false // Admin needs to confirm it
+        'confirmed': false, // Admin needs to confirm it
+        'collectionRequestSent': false
       };
 
       // Add the bin to Firestore
