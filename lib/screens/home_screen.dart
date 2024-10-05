@@ -6,6 +6,7 @@ import 'package:smart_waste_management_system/screens/admin/schedule_waste_colle
 import '../widgets/responsive_nav_bar.dart'; // Import the responsive nav bar
 import '../screens/profile/profile_screen.dart';
 import '../screens/admin/user_management_screen.dart'; // Import the UserManagementScreen
+import 'admin/route_monitoring_screen.dart'; // Import the RouteMonitoringScreen
 import '../screens/admin/schedule_waste_collection.dart'; // Import WasteCollectionDashboard
 
 
@@ -119,7 +120,12 @@ class _HomeScreenState extends State<HomeScreen> {
           SizedBox(height: 10),
           ElevatedButton(
             onPressed: () {
-              // Navigate to Route Monitoring
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                        RouteMonitoringScreen()), // Navigate to RouteMonitoringScreen
+              );
             },
             child: Text('Route Monitoring'),
           ),
