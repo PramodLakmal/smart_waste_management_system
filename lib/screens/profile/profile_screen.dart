@@ -178,10 +178,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Icons.location_on, 'Address', _currentUserDetails!.address),
           _buildInfoTile(
               Icons.location_city, 'City', _currentUserDetails!.city),
-          _buildInfoTile(Icons.map, 'State', _currentUserDetails!.state),
-          _buildInfoTile(Icons.flag, 'Country', _currentUserDetails!.country),
-          _buildInfoTile(Icons.markunread_mailbox, 'Postal Code',
-              _currentUserDetails!.postalCode),
 
           // Edit Profile Button inside My Profile
           SizedBox(height: 20),

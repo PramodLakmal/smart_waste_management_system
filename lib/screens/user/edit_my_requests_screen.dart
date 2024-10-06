@@ -22,10 +22,11 @@ class _EditRequestScreenState extends State<EditRequestScreen> {
   double organicWasteWeight = 0.0;
   double plasticWasteWeight = 0.0;
   DateTime? selectedDate;
-  
+
   // New fields for address and city
   String address = '';
   String city = '';
+  final List<String> cities = ['Malabe', 'Kaduwela']; // List of cities
 
   @override
   void initState() {
@@ -33,36 +34,35 @@ class _EditRequestScreenState extends State<EditRequestScreen> {
     _fetchRequestData();
   }
 
-Future<void> _fetchRequestData() async {
-  DocumentSnapshot requestDoc = await FirebaseFirestore.instance
-      .collection('specialWasteRequests')
-      .doc(widget.requestId)
-      .get();
+  Future<void> _fetchRequestData() async {
+    DocumentSnapshot requestDoc = await FirebaseFirestore.instance
+        .collection('specialWasteRequests')
+        .doc(widget.requestId)
+        .get();
 
-  setState(() {
-    requestData = requestDoc.data() as Map<String, dynamic>?;
+    setState(() {
+      requestData = requestDoc.data() as Map<String, dynamic>?;
 
-    if (requestData != null) {
-      // Initialize fields based on the request data
-      var wasteTypes = requestData!['wasteTypes'];
+      if (requestData != null) {
+        // Initialize fields based on the request data
+        var wasteTypes = requestData!['wasteTypes'];
 
-      isElectricalWasteSelected = wasteTypes.any((waste) => waste['type'] == 'Electrical Waste');
-      isOrganicWasteSelected = wasteTypes.any((waste) => waste['type'] == 'Organic Waste');
-      isPlasticWasteSelected = wasteTypes.any((waste) => waste['type'] == 'Plastic Waste');
+        isElectricalWasteSelected = wasteTypes.any((waste) => waste['type'] == 'Electrical Waste');
+        isOrganicWasteSelected = wasteTypes.any((waste) => waste['type'] == 'Organic Waste');
+        isPlasticWasteSelected = wasteTypes.any((waste) => waste['type'] == 'Plastic Waste');
 
-      electricalWasteWeight = (wasteTypes.firstWhere((waste) => waste['type'] == 'Electrical Waste', orElse: () => {'weight': 0})['weight'] ?? 0).toDouble();
-      organicWasteWeight = (wasteTypes.firstWhere((waste) => waste['type'] == 'Organic Waste', orElse: () => {'weight': 0})['weight'] ?? 0).toDouble();
-      plasticWasteWeight = (wasteTypes.firstWhere((waste) => waste['type'] == 'Plastic Waste', orElse: () => {'weight': 0})['weight'] ?? 0).toDouble();
+        electricalWasteWeight = (wasteTypes.firstWhere((waste) => waste['type'] == 'Electrical Waste', orElse: () => {'weight': 0})['weight'] ?? 0).toDouble();
+        organicWasteWeight = (wasteTypes.firstWhere((waste) => waste['type'] == 'Organic Waste', orElse: () => {'weight': 0})['weight'] ?? 0).toDouble();
+        plasticWasteWeight = (wasteTypes.firstWhere((waste) => waste['type'] == 'Plastic Waste', orElse: () => {'weight': 0})['weight'] ?? 0).toDouble();
 
-      selectedDate = DateTime.parse(requestData!['scheduledDate']);
+        selectedDate = DateTime.parse(requestData!['scheduledDate']);
 
-      // Initialize address and city
-      address = requestData!['address'] ?? '';
-      city = requestData!['city'] ?? '';
-    }
-  });
-}
-
+        // Initialize address and city
+        address = requestData!['address'] ?? '';
+        city = requestData!['city'] ?? '';
+      }
+    });
+  }
 
   Future<void> _updateRequest() async {
     if (!_formKey.currentState!.validate()) return;
@@ -215,27 +215,35 @@ Future<void> _fetchRequestData() async {
                       },
                     ),
                     SizedBox(height: 20),
-                    TextFormField(
-                      decoration: InputDecoration(labelText: 'City'),
-                      initialValue: city,
+                    DropdownButtonFormField<String>(
+                      decoration: InputDecoration(labelText: 'Select City'),
+                      value: city.isNotEmpty ? city : null, // Set initial value
+                      items: cities.map((String city) {
+                        return DropdownMenuItem<String>(
+                          value: city,
+                          child: Text(city),
+                        );
+                      }).toList(),
                       onChanged: (value) {
-                        city = value;
+                        setState(() {
+                          city = value ?? '';
+                        });
                       },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your city.';
+                          return 'Please select a valid city.';
                         }
                         return null;
                       },
                     ),
                     SizedBox(height: 20),
                     ListTile(
-                      title: Text('Select Date: ${DateFormat('yyyy-MM-dd').format(selectedDate!)}'),
+                      title: Text('Select Date: ${selectedDate != null ? DateFormat('yyyy-MM-dd').format(selectedDate!) : 'Not selected'}'),
                       trailing: Icon(Icons.calendar_today),
                       onTap: () async {
                         DateTime? pickedDate = await showDatePicker(
                           context: context,
-                          initialDate: selectedDate!,
+                          initialDate: selectedDate ?? DateTime.now(),
                           firstDate: DateTime.now(),
                           lastDate: DateTime(2100),
                         );

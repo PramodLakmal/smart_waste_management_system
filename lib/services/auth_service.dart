@@ -20,7 +20,7 @@ class AuthService {
   }
 
   // Sign up method (if needed)
-  Future<UserModel?> signUp(String email, String password, String name, String phone) async {
+  Future<UserModel?> signUp(String email, String password, String name) async {
     try {
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -34,13 +34,10 @@ class AuthService {
           uid: user.uid,
           email: email,
           name: name,
-          phone: phone,
+          phone: '',
           role: 'user',
           address: '',
-          city: '',
-          state: '',
-          country: '',
-          postalCode: '',
+          city: 'Malabe',
         );
 
         await FirebaseFirestore.instance.collection('users').doc(user.uid).set(userModel.toMap());

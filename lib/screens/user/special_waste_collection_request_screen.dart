@@ -33,6 +33,8 @@ class _SpecialWasteRequestScreenState extends State<SpecialWasteRequestScreen> {
   // Optional description
   String description = '';
 
+  final List<String> cities = ['Malabe', 'Kaduwela']; // List of cities
+
   @override
   void initState() {
     super.initState();
@@ -55,65 +57,64 @@ class _SpecialWasteRequestScreenState extends State<SpecialWasteRequestScreen> {
     }
   }
 
-Future<void> _submitRequest() async {
-  if (!_formKey.currentState!.validate()) {
-    return;
-  }
+  Future<void> _submitRequest() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
-  // Ensure at least one waste type and weight is selected
-  if (!isElectricalWasteSelected && !isOrganicWasteSelected && !isPlasticWasteSelected) {
+    // Ensure at least one waste type and weight is selected
+    if (!isElectricalWasteSelected && !isOrganicWasteSelected && !isPlasticWasteSelected) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please select at least one waste type and enter its weight.')),
+      );
+      return;
+    }
+
+    // Prepare the list of waste types with their respective weights
+    List<Map<String, dynamic>> wasteTypes = [];
+
+    if (isElectricalWasteSelected) {
+      wasteTypes.add({'type': 'Electrical Waste', 'weight': electricalWasteWeight});
+    }
+
+    if (isOrganicWasteSelected) {
+      wasteTypes.add({'type': 'Organic Waste', 'weight': organicWasteWeight});
+    }
+
+    if (isPlasticWasteSelected) {
+      wasteTypes.add({'type': 'Plastic Waste', 'weight': plasticWasteWeight});
+    }
+
+    // Use saved address or the newly entered address
+    String selectedAddress = useSavedAddress ? userAddress : newAddress;
+    String selectedCity = useSavedAddress ? userCity : newCity;
+
+    // The date and time for request: use current time for 'Request Now', or the selected date
+    DateTime requestTime = DateTime.now();
+    DateTime scheduledDate = isNowSelected ? requestTime : selectedDate!;
+
+    // Default status to "pending"
+    String status = "pending";
+
+    // Save the data to Firestore in the 'specialWasteRequests' collection
+    await FirebaseFirestore.instance.collection('specialWasteRequests').add({
+      'userId': FirebaseAuth.instance.currentUser!.uid,
+      'address': selectedAddress,
+      'city': selectedCity,
+      'description': description,
+      'requestTime': requestTime.toIso8601String(),
+      'scheduledDate': scheduledDate.toIso8601String(),
+      'status': status,
+      'wasteTypes': wasteTypes, // Array of waste types with their weights
+    });
+
+    // Show a success message and navigate back
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Please select at least one waste type and enter its weight.')),
+      SnackBar(content: Text('Special waste collection request submitted successfully.')),
     );
-    return;
+
+    Navigator.pop(context); // Return to the previous screen
   }
-
-  // Prepare the list of waste types with their respective weights
-  List<Map<String, dynamic>> wasteTypes = [];
-
-  if (isElectricalWasteSelected) {
-    wasteTypes.add({'type': 'Electrical Waste', 'weight': electricalWasteWeight});
-  }
-
-  if (isOrganicWasteSelected) {
-    wasteTypes.add({'type': 'Organic Waste', 'weight': organicWasteWeight});
-  }
-
-  if (isPlasticWasteSelected) {
-    wasteTypes.add({'type': 'Plastic Waste', 'weight': plasticWasteWeight});
-  }
-
-  // Use saved address or the newly entered address
-  String selectedAddress = useSavedAddress ? userAddress : newAddress;
-  String selectedCity = useSavedAddress ? userCity : newCity;
-
-  // The date and time for request: use current time for 'Request Now', or the selected date
-  DateTime requestTime = DateTime.now();
-  DateTime scheduledDate = isNowSelected ? requestTime : selectedDate!;
-
-  // Default status to "pending"
-  String status = "pending";
-
-  // Save the data to Firestore in the 'specialWasteRequests' collection
-  await FirebaseFirestore.instance.collection('specialWasteRequests').add({
-    'userId': FirebaseAuth.instance.currentUser!.uid,
-    'address': selectedAddress,
-    'city': selectedCity,
-    'description': description,
-    'requestTime': requestTime.toIso8601String(),
-    'scheduledDate': scheduledDate.toIso8601String(),
-    'status': status,
-    'wasteTypes': wasteTypes, // Array of waste types with their weights
-  });
-
-  // Show a success message and navigate back
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Special waste collection request submitted successfully.')),
-  );
-
-  Navigator.pop(context); // Return to the previous screen
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -210,7 +211,7 @@ Future<void> _submitRequest() async {
                 },
               ),
               RadioListTile<bool>(
-                title: Text('Enter New Address'),
+                title: Text('Enter Address Manually'),
                 value: false,
                 groupValue: useSavedAddress,
                 onChanged: (value) {
@@ -223,7 +224,7 @@ Future<void> _submitRequest() async {
                 Column(
                   children: [
                     TextFormField(
-                      decoration: InputDecoration(labelText: 'Enter New Address'),
+                      decoration: InputDecoration(labelText: 'Enter Address'),
                       onChanged: (value) {
                         newAddress = value;
                       },
@@ -234,14 +235,23 @@ Future<void> _submitRequest() async {
                         return null;
                       },
                     ),
-                    TextFormField(
-                      decoration: InputDecoration(labelText: 'Enter New City'),
+                    DropdownButtonFormField<String>(
+                      decoration: InputDecoration(labelText: 'Select City'),
+                      value: newCity.isNotEmpty ? newCity : null, // Set initial value
+                      items: cities.map((String city) {
+                        return DropdownMenuItem<String>(
+                          value: city,
+                          child: Text(city),
+                        );
+                      }).toList(),
                       onChanged: (value) {
-                        newCity = value;
+                        setState(() {
+                          newCity = value ?? '';
+                        });
                       },
                       validator: (value) {
                         if (!useSavedAddress && (value == null || value.isEmpty)) {
-                          return 'Please enter a valid city.';
+                          return 'Please select a valid city.';
                         }
                         return null;
                       },

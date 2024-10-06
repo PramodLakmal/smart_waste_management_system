@@ -20,10 +20,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
   late TextEditingController _addressController;
-  late TextEditingController _cityController;
-  late TextEditingController _stateController;
-  late TextEditingController _countryController;
-  late TextEditingController _postalCodeController;
+
+  // Cities dropdown value
+  late String _selectedCity;
 
   @override
   void initState() {
@@ -34,10 +33,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _emailController = TextEditingController(text: widget.userModel.email);
     _phoneController = TextEditingController(text: widget.userModel.phone);
     _addressController = TextEditingController(text: widget.userModel.address);
-    _cityController = TextEditingController(text: widget.userModel.city);
-    _stateController = TextEditingController(text: widget.userModel.state);
-    _countryController = TextEditingController(text: widget.userModel.country);
-    _postalCodeController = TextEditingController(text: widget.userModel.postalCode);
+
+    // Initialize the selected city with the user's current city or set default to "Malabe"
+    _selectedCity = widget.userModel.city.isNotEmpty
+        ? widget.userModel.city
+        : 'Malabe'; // Default to "Malabe" if city is not provided
   }
 
   // Save changes to Firestore
@@ -50,10 +50,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           'email': _emailController.text,
           'phone': _phoneController.text,
           'address': _addressController.text,
-          'city': _cityController.text,
-          'state': _stateController.text,
-          'country': _countryController.text,
-          'postalCode': _postalCodeController.text,
+          'city': _selectedCity, // Save selected city
         });
 
         // Show confirmation and pop the screen with true result
@@ -82,10 +79,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 _buildTextField('Email', _emailController, isEmail: true),
                 _buildTextField('Phone', _phoneController),
                 _buildTextField('Address', _addressController),
-                _buildTextField('City', _cityController),
-                _buildTextField('State', _stateController),
-                _buildTextField('Country', _countryController),
-                _buildTextField('Postal Code', _postalCodeController),
+                _buildCityDropdown(), // Dropdown for city selection
                 SizedBox(height: 20),
                 _buildSaveButton(), // Custom save button
               ],
@@ -112,6 +106,39 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         validator: (value) {
           if (value == null || value.isEmpty) {
             return 'Please enter $label';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  // Helper method to build the DropdownButtonFormField for city selection
+  Widget _buildCityDropdown() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      child: DropdownButtonFormField<String>(
+        value: _selectedCity, // Set initial selected value
+        items: ['Malabe', 'Kaduwela'].map((String city) {
+          return DropdownMenuItem<String>(
+            value: city,
+            child: Text(city),
+          );
+        }).toList(),
+        decoration: InputDecoration(
+          labelText: 'City',
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10), // Rounded border
+          ),
+        ),
+        onChanged: (String? newValue) {
+          setState(() {
+            _selectedCity = newValue!; // Update the selected city
+          });
+        },
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please select a city';
           }
           return null;
         },

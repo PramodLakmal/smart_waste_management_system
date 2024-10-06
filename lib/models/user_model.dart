@@ -8,9 +8,6 @@ class UserModel {
   String role; // User role (e.g., 'admin', 'user', etc.)
   String address; // User address
   String city; // User city
-  String state; // User state
-  String country; // User country
-  String postalCode; // User postal code
 
   UserModel({
     required this.uid,
@@ -20,9 +17,6 @@ class UserModel {
     required this.role,
     required this.address,
     required this.city,
-    required this.state,
-    required this.country,
-    required this.postalCode,
   });
 
   // Convert a UserModel object into a map for Firestore
@@ -35,9 +29,6 @@ class UserModel {
       'role': role,
       'address': address,
       'city': city,
-      'state': state,
-      'country': country,
-      'postalCode': postalCode,
     };
   }
 
@@ -51,9 +42,6 @@ class UserModel {
       role: map['role'] ?? '',
       address: map['address'] ?? '',
       city: map['city'] ?? '',
-      state: map['state'] ?? '',
-      country: map['country'] ?? '',
-      postalCode: map['postalCode'] ?? '',
     );
   }
 
