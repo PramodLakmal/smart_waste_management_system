@@ -6,6 +6,7 @@ import 'screens/auth/signup_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/bin/add_bin_screen.dart';
+import 'screens/user/view_my_requests_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,6 +48,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => HomeScreen(),
         '/profile': (context) => ProfileScreen(),
         '/add-bin': (context) => AddBinScreen(),
+        '/requests': (context) => ViewRequestsScreen(),
       },
     );
   }

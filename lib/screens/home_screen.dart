@@ -12,6 +12,7 @@ import '../../models/schedule_model.dart'; // Import the Schedule model
 import '../screens/admin/confirm_bin_screen.dart'; // Import the ConfirmBinScreen
 import '../screens/admin/waste_collection_requests_screen.dart'; // Import the WasteCollectionRequestsScreen
 import '../screens/user/special_waste_collection_request_screen.dart'; // Import the SpecialWasteRequestScreen
+import '../screens/user/view_my_requests_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -128,7 +129,12 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           : null,
       body: Center(
-        child: _selectedIndex == 0 ? _buildHomeContent() : ProfileScreen(),
+        // Update this logic to handle the new "Requests" screen
+        child: _selectedIndex == 0
+            ? _buildHomeContent() // Home content
+            : _selectedIndex == 1
+                ? ViewRequestsScreen() // Profile content
+                : ProfileScreen() , // Requests screen
       ),
       bottomNavigationBar: !kIsWeb
           ? ResponsiveNavBar(
