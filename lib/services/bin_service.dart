@@ -49,4 +49,19 @@ class BinService {
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) => Bin.fromDocument(doc)).toList());
   }
+
+  getBinsForCollectorByAddress(String wasteCollector) {
+    return _db
+        .collection('bins')
+        .where('wasteCollector', isEqualTo: wasteCollector)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => Bin.fromDocument(doc)).toList());
+  }
+
+  markBinAsCollected(String binId) {
+    return _db.collection('bins').doc(binId).update({
+      'collectionRequestSent': false,
+      'filledPercentage': 0,
+    });
+  }
 }

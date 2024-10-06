@@ -53,7 +53,7 @@ class _RouteMonitoringScreenState extends State<RouteMonitoringScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Your Schedules', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        title: Text('Normal Schedule List', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
