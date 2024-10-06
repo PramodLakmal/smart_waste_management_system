@@ -96,10 +96,10 @@ class _WasteDetailsScreenState extends State<WasteDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Waste Collection Requests'),
+        title: Text('Waste Requests for ${widget.wasteCollector}'),
         actions: [
           IconButton(
-            icon: Icon(_showCollected ? Icons.unarchive : Icons.archive),
+            icon: Icon(_showCollected ? Icons.pending : Icons.pending_outlined),
             onPressed: () {
               setState(() {
                 _showCollected = !_showCollected;
