@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:firebase_auth/firebase_auth.dart'; // For FirebaseAuth
 import 'package:cloud_firestore/cloud_firestore.dart'; // For Firestore
 import 'package:percent_indicator/percent_indicator.dart'; // For visualizing percentages
+import 'package:smart_waste_management_system/screens/admin/route_schedule_selection.dart';
 import '../widgets/responsive_nav_bar.dart'; // Import the responsive nav bar
 import '../screens/profile/profile_screen.dart';
 import '../screens/admin/user_management_screen.dart'; // Import the UserManagementScreen
@@ -218,9 +219,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => RouteMonitoringScreen(
-                            routeId: '',
-                            wasteCollector: '',
+                          builder: (context) => RouteScheduleSelection(
                           ),
                         ),
                       );

@@ -26,4 +26,38 @@ class UserService {
   Future<void> updateUser(UserModel userModel) async {
     await _firestore.collection('users').doc(userModel.uid).update(userModel.toMap());
   }
+
+  // Fetch all users
+  Stream<List<UserModel>> getUsers() {
+    return _firestore.collection('users').snapshots().map((snapshot) =>
+        snapshot.docs.map((doc) => UserModel.fromDocument(doc)).toList());
+  }
+
+  // Fetch users by role
+  Stream<List<UserModel>> getUsersByRole(String role) {
+    return _firestore
+        .collection('users')
+        .where('role', isEqualTo: role)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => UserModel.fromDocument(doc)).toList());
+  }
+
+  // Fetch users by role and status
+  Stream<List<UserModel>> getUsersByRoleAndStatus(String role, bool isActive) {
+    return _firestore
+        .collection('users')
+        .where('role', isEqualTo: role)
+        .where('isActive', isEqualTo: isActive)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => UserModel.fromDocument(doc)).toList());
+  }
+
+  //Get user by address
+  Stream<List<UserModel>> getUsersByAddress(String address) {
+    return _firestore
+        .collection('users')
+        .where('address', isEqualTo: address)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => UserModel.fromDocument(doc)).toList());
+  }
 }
