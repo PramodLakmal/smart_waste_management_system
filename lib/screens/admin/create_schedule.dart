@@ -98,7 +98,7 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
       );
 
       final schedule = Schedule(
-        id: widget.schedule?.id, // Add id for editing
+        id: widget.schedule?.id,
         collectionZone: _zoneController.text,
         vehicleNumber: _vehicleController.text,
         wasteCollector: _collectorController.text,
@@ -128,82 +128,138 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
       appBar: AppBar(
         title: Text(widget.schedule == null ? 'Create New Schedule' : 'Edit Schedule'),
       ),
-      body: Form(
-        key: _formKey,
-        child: Padding(
+      body: Center(
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.9,
           padding: const EdgeInsets.all(16.0),
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: _zoneController,
-                decoration: InputDecoration(labelText: 'Collection Zone'),
-                validator: (value) => value!.isEmpty ? 'Enter zone' : null,
-              ),
-              TextFormField(
-                controller: _vehicleController,
-                decoration: InputDecoration(labelText: 'Vehicle Number'),
-                validator: (value) => value!.isEmpty ? 'Enter vehicle number' : null,
-              ),
-              TextFormField(
-                controller: _collectorController,
-                decoration: InputDecoration(labelText: 'Waste Collector'),
-                validator: (value) => value!.isEmpty ? 'Enter collector name' : null,
-              ),
-              TextFormField(
-                controller: _locationController,
-                decoration: InputDecoration(labelText: 'Location'),
-                validator: (value) => value!.isEmpty ? 'Enter location' : null,
-              ),
-              SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Start Date: ${DateFormat('yyyy-MM-dd').format(_startDate)}'),
-                  ElevatedButton(
-                    onPressed: () => _pickDate(isStartDate: true),
-                    child: Text('Select Date'),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Start Time: ${_startTime.format(context)}'),
-                  ElevatedButton(
-                    onPressed: () => _pickTime(isStartTime: true),
-                    child: Text('Select Time'),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('End Date: ${DateFormat('yyyy-MM-dd').format(_endDate)}'),
-                  ElevatedButton(
-                    onPressed: () => _pickDate(isStartDate: false),
-                    child: Text('Select Date'),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('End Time: ${_endTime.format(context)}'),
-                  ElevatedButton(
-                    onPressed: () => _pickTime(isStartTime: false),
-                    child: Text('Select Time'),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _submit,
-                child: Text(widget.schedule == null ? 'Create Schedule' : 'Update Schedule'),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16.0),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                spreadRadius: 5,
+                blurRadius: 7,
+                offset: Offset(0, 3),
               ),
             ],
           ),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _textField('Collection Zone:', _zoneController),
+                const SizedBox(height: 8),
+                _textField('Vehicle Number:', _vehicleController),
+                const SizedBox(height: 8),
+                _textField('Waste Collector:', _collectorController),
+                const SizedBox(height: 8),
+                _textField('Location:', _locationController),
+                const SizedBox(height: 16),
+                
+                _dateTimeRow('Start Time:', _startDate, _startTime, () => _pickDate(isStartDate: true), () => _pickTime(isStartTime: true)),
+                const SizedBox(height: 8),
+                
+                _dateTimeRow('End Time:', _endDate, _endTime, () => _pickDate(isStartDate: false), () => _pickTime(isStartTime: false)),
+                const SizedBox(height: 24),
+
+                // Action Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    // Edit Button
+                    ElevatedButton.icon(
+                      onPressed: _submit,
+                      icon: Icon(widget.schedule == null ? Icons.add : Icons.edit),
+                      label: Text(widget.schedule == null ? 'Create Schedule' : 'Update Schedule'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 51, 126, 201),
+                      ),
+                    ),
+                    
+                    // Delete Button
+                    // if (widget.schedule != null)
+                    //   ElevatedButton.icon(
+                    //     onPressed: () {
+                    //       // Delete Functionality here
+                    //     },
+                    //     icon: Icon(Icons.delete),
+                    //     label: Text('Delete'),
+                    //     style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    //   ),
+                  ],
+                ),
+                
+                // Back Button
+                const SizedBox(height: 16),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Back'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _textField(String label, TextEditingController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        const SizedBox(height: 4),
+        TextFormField(
+          controller: controller,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(),
+            filled: true,
+            fillColor: Colors.grey[200],
+          ),
+          validator: (value) => value!.isEmpty ? 'Enter $label' : null,
+        ),
+      ],
+    );
+  }
+
+  Widget _dateTimeRow(String label, DateTime date, TimeOfDay time, VoidCallback onPickDate, VoidCallback onPickTime) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        const SizedBox(height: 4),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Date: ${DateFormat('yyyy-MM-dd').format(date)}'),
+            ElevatedButton(
+              onPressed: onPickDate,
+              child: Text('Select Date'),
+            ),
+            Text('Time: ${time.format(context)}'),
+            ElevatedButton(
+              onPressed: onPickTime,
+              child: Text('Select Time'),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
