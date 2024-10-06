@@ -106,69 +106,84 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.purple,
-        child: Icon(Icons.add),
-        onPressed: () {
-          // Navigate to create schedule page
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => CreateSchedulePage()),
-          );
-        },
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   backgroundColor: Colors.purple,
+      //   child: Icon(Icons.add),
+      //   onPressed: () {
+      //     // Navigate to create schedule page
+      //     Navigator.push(
+      //       context,
+      //       MaterialPageRoute(builder: (context) => CreateSchedulePage()),
+      //     );
+      //   },
+      // ),
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      padding: EdgeInsets.all(16),
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                selectedYear.toString(),
-                style: TextStyle(fontSize: 16),
+ Widget _buildHeader() {
+  return Container(
+    padding: EdgeInsets.all(16),
+    color: Colors.white,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              selectedYear.toString(),
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(width: 8),
+            TextButton(
+              child: Text(selectedMonth),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.purple,
               ),
-              SizedBox(width: 8),
-              TextButton(
-                child: Text(selectedMonth),
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.purple,
-                ),
-                onPressed: () {
-                  // Show month selector
-                },
+              onPressed: () {
+                // Show month selector
+              },
+            ),
+            Spacer(), // This will push the button to the right
+            ElevatedButton(
+              onPressed: () {
+                // Navigate to create schedule page
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CreateSchedulePage()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(255, 49, 136, 207),
               ),
-            ],
-          ),
-          SizedBox(height: 8),
-          Row(
-            children: [
-              ChoiceChip(
-                label: Text('Week'),
-                selected: !isMonthView,
-                onSelected: (selected) {
-                  setState(() => isMonthView = !selected);
-                },
-              ),
-              SizedBox(width: 8),
-              ChoiceChip(
-                label: Text('Month'),
-                selected: isMonthView,
-                onSelected: (selected) {
-                  setState(() => isMonthView = selected);
-                },
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+              child: Text('Create'), // Display "Create" text
+            ),
+          ],
+        ),
+        SizedBox(height: 8),
+        Row(
+          children: [
+            ChoiceChip(
+              label: Text('Week'),
+              selected: !isMonthView,
+              onSelected: (selected) {
+                setState(() => isMonthView = !selected);
+              },
+            ),
+            SizedBox(width: 8),
+            ChoiceChip(
+              label: Text('Month'),
+              selected: isMonthView,
+              onSelected: (selected) {
+                setState(() => isMonthView = selected);
+              },
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
 
   List<Widget> _buildScheduleList(Map<String, List<Schedule>> groupedSchedules) {
     List<Widget> widgets = [];
