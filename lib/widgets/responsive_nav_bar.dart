@@ -97,18 +97,18 @@ class _ResponsiveNavBarState extends State<ResponsiveNavBar> {
             ListTile(
               leading: const Icon(Icons.list),
               title: const Text('View Requests'),
-              selected: widget.selectedIndex == 2,
+              selected: widget.selectedIndex == 1,
               onTap: () {
-                widget.onItemTapped(2);
+                widget.onItemTapped(1);
                 Navigator.pop(context); // Close drawer after tapping
               },
             ),
           ListTile(
             leading: const Icon(Icons.account_circle),
             title: const Text('Profile'),
-            selected: widget.selectedIndex == 1,
+            selected: widget.selectedIndex == 2,
             onTap: () {
-              widget.onItemTapped(1);
+              widget.onItemTapped(2);
               Navigator.pop(context); // Close drawer after tapping
             },
           ),

@@ -13,6 +13,7 @@ import '../screens/admin/confirm_bin_screen.dart'; // Import the ConfirmBinScree
 import '../screens/admin/waste_collection_requests_screen.dart'; // Import the WasteCollectionRequestsScreen
 import '../screens/user/special_waste_collection_request_screen.dart'; // Import the SpecialWasteRequestScreen
 import '../screens/user/view_my_requests_screen.dart';
+import '../screens/admin/view_special_requests_screen.dart'; // Import the AdminViewRequestsScreen
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -116,34 +117,37 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Home'),
-      ),
-      drawer: kIsWeb
-          ? ResponsiveNavBar(
-              selectedIndex: _selectedIndex,
-              onItemTapped: _onItemTapped,
-            )
-          : null,
-      body: Center(
-        // Update this logic to handle the new "Requests" screen
-        child: _selectedIndex == 0
-            ? _buildHomeContent() // Home content
-            : _selectedIndex == 1
-                ? ViewRequestsScreen() // Profile content
-                : ProfileScreen() , // Requests screen
-      ),
-      bottomNavigationBar: !kIsWeb
-          ? ResponsiveNavBar(
-              selectedIndex: _selectedIndex,
-              onItemTapped: _onItemTapped,
-            )
-          : null,
-    );
-  }
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: Text('Home'),
+    ),
+    drawer: kIsWeb
+        ? ResponsiveNavBar(
+            selectedIndex: _selectedIndex,
+            onItemTapped: _onItemTapped,
+          )
+        : null,
+    body: Center(
+      // Update this logic to handle the new screen display for Admin and User
+      child: _selectedIndex == 0
+          ? _buildHomeContent() // Home content
+          : _isAdmin
+              ? ProfileScreen() // Admin sees ProfileScreen
+              : _selectedIndex == 1
+                  ? ViewRequestsScreen() // User sees ViewRequestsScreen
+                  : ProfileScreen(), // Default to ProfileScreen for users
+    ),
+    bottomNavigationBar: !kIsWeb
+        ? ResponsiveNavBar(
+            selectedIndex: _selectedIndex,
+            onItemTapped: _onItemTapped,
+          )
+        : null,
+  );
+}
+
 
   Widget _buildHomeContent() {
     return Column(
@@ -211,6 +215,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       MaterialPageRoute(
                         builder: (context) =>
                             WasteCollectionRequestsScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildAdminCard(
+                  icon: Icons.list,
+                  title: 'View Special Collection Requests',
+                  description: 'View all Special Waste Collection Requests',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            AdminViewRequestsScreen(),
                       ),
                     );
                   },
