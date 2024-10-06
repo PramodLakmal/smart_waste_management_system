@@ -11,6 +11,7 @@ import '../screens/admin/schedule_waste_collection.dart'; // Import WasteCollect
 import '../../models/schedule_model.dart'; // Import the Schedule model
 import '../screens/admin/confirm_bin_screen.dart'; // Import the ConfirmBinScreen
 import '../screens/admin/waste_collection_requests_screen.dart'; // Import the WasteCollectionRequestsScreen
+import '../screens/user/special_waste_collection_request_screen.dart'; // Import the SpecialWasteRequestScreen
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -274,6 +275,17 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
           ),
+          ElevatedButton(
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SpecialWasteRequestScreen(), // Navigate to the special request screen
+      ),
+    );
+  },
+  child: Text('Special Waste Collection Request'),
+),
         ],
         if (!_isAdmin && !_isUser)
           Padding(
