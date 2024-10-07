@@ -82,7 +82,7 @@ class _ConfirmBinScreenState extends State<ConfirmBinScreen> {
                   final user = userSnapshot.data!;
                   String userName = user['name'] ?? 'Unknown';
                   String userEmail = user['email'] ?? 'Unknown';
-                  String userAddress = '${user['address']}, ${user['city']}, ${user['state']}';
+                  String userAddress = '${user['address']}, ${user['city']}}';
 
                   return Card(
                     margin: EdgeInsets.all(10),
