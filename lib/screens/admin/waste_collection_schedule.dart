@@ -395,7 +395,7 @@ class Sidebar extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: Icon(Icons.list),
+            leading: Icon(Icons.schedule),
             title: Text('Special Schedules'),
             onTap: () {
               Navigator.pop(context); // Close the drawer

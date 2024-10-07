@@ -4,22 +4,22 @@ class SpecialSchedule {
   String? id;
   String address;
   String city;
-  String description;
-  DateTime requestTime;
+  String requestId; // Changed from userId to requestId
   DateTime scheduledDate;
   String status; // 'pending', 'completed'
-  String userId;
+  String vehicleNumber; // Added vehicleNumber
+  String wasteCollector; // Added wasteCollector
   List<WasteType> wasteTypes;
 
   SpecialSchedule({
     this.id,
     required this.address,
     required this.city,
-    required this.description,
-    required this.requestTime,
+    required this.requestId, // Changed from userId to requestId
     required this.scheduledDate,
     required this.status,
-    required this.userId,
+    required this.vehicleNumber, // Added vehicleNumber
+    required this.wasteCollector, // Added wasteCollector
     required this.wasteTypes,
   });
 
@@ -29,11 +29,11 @@ class SpecialSchedule {
       id: doc.id,
       address: data['address'],
       city: data['city'],
-      description: data['description'],
-      requestTime: DateTime.parse(data['requestTime']),
-      scheduledDate: DateTime.parse(data['scheduledDate']),
+      requestId: data['requestId'], // Changed from userId to requestId
+      scheduledDate: DateTime.parse(data['scheduledDate']), // Parse string to DateTime
       status: data['status'],
-      userId: data['userId'],
+      vehicleNumber: data['vehicleNumber'], // Added vehicleNumber
+      wasteCollector: data['wasteCollector'], // Added wasteCollector
       wasteTypes: (data['wasteTypes'] as List).map((w) => WasteType.fromMap(w)).toList(),
     );
   }
@@ -42,11 +42,11 @@ class SpecialSchedule {
     return {
       'address': address,
       'city': city,
-      'description': description,
-      'requestTime': requestTime.toIso8601String(),
+      'requestId': requestId, // Changed from userId to requestId
       'scheduledDate': scheduledDate.toIso8601String(),
       'status': status,
-      'userId': userId,
+      'vehicleNumber': vehicleNumber, // Added vehicleNumber
+      'wasteCollector': wasteCollector, // Added wasteCollector
       'wasteTypes': wasteTypes.map((w) => w.toMap()).toList(),
     };
   }
