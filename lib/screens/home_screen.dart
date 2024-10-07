@@ -8,7 +8,7 @@ import '../widgets/responsive_nav_bar.dart'; // Import the responsive nav bar
 import '../screens/profile/profile_screen.dart';
 import '../screens/admin/user_management_screen.dart'; // Import the UserManagementScreen
 import 'admin/route_monitoring_screen.dart'; // Import the RouteMonitoringScreen
-import '../screens/admin/schedule_waste_collection.dart'; // Import WasteCollectionDashboard
+import 'admin/waste_collection_schedule.dart'; // Import WasteCollectionDashboard
 import '../../models/schedule_model.dart'; // Import the Schedule model
 import '../screens/admin/confirm_bin_screen.dart'; // Import the ConfirmBinScreen
 import '../screens/admin/waste_collection_requests_screen.dart'; // Import the WasteCollectionRequestsScreen

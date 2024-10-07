@@ -199,10 +199,10 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
                     onPressed: () {
                       Navigator.pop(context);
                     },
-                    child: const Text('Back'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey,
                     ),
+                    child: const Text('Back'),
                   ),
                 ),
               ],
