@@ -152,7 +152,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 _passwordController.text,
                                 _nameController.text,
                               );
-                              Navigator.pushReplacementNamed(context, '/home');
+                              Navigator.pushReplacementNamed(context, '/userHome');
                             }
                           },
                           style: ElevatedButton.styleFrom(

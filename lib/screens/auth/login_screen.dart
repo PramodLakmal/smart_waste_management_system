@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
-import '../../widgets/input_field.dart';
-import '../../widgets/custom_button.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -84,8 +82,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         filled: true,
                         fillColor: Colors.white,
                         contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16.0, 
-                          horizontal: 16.0
+                          vertical: 16.0,
+                          horizontal: 16.0,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -93,7 +91,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: theme.primaryColorLight),
+                          borderSide:
+                              BorderSide(color: theme.primaryColorLight),
                         ),
                       ),
                     ),
@@ -107,8 +106,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         filled: true,
                         fillColor: Colors.white,
                         contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16.0, 
-                          horizontal: 16.0
+                          vertical: 16.0,
+                          horizontal: 16.0,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -116,7 +115,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: theme.primaryColorLight),
+                          borderSide:
+                              BorderSide(color: theme.primaryColorLight),
                         ),
                       ),
                       obscureText: true,
@@ -132,13 +132,22 @@ class _LoginScreenState extends State<LoginScreen> {
                             _errorMessage = null;
                           });
 
-                          bool success = await _authService.signIn(
+                          Map<String, dynamic>? userData =
+                              await _authService.signIn(
                             _emailController.text,
                             _passwordController.text,
                           );
 
-                          if (success) {
-                            Navigator.pushReplacementNamed(context, '/home');
+                          if (userData != null) {
+                            // Check the user's role and navigate accordingly
+                            String userRole = userData['role'] ?? 'user';
+
+                            if (userRole == 'user') {
+                              Navigator.pushReplacementNamed(
+                                  context, '/userHome');
+                            } else {
+                              Navigator.pushReplacementNamed(context, '/home');
+                            }
                           } else {
                             setState(() {
                               _errorMessage = 'Invalid email or password';
@@ -173,9 +182,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: Text(
                           "Don't have an account? Sign Up",
                           style: TextStyle(
-                            color: theme.primaryColor, 
-                            fontWeight: FontWeight.bold
-                          ),
+                              color: theme.primaryColor,
+                              fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),

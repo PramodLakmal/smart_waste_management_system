@@ -7,6 +7,7 @@ import 'screens/profile/profile_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/bin/add_bin_screen.dart';
 import 'screens/user/view_my_requests_screen.dart';
+import 'screens/user/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,6 +50,7 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => ProfileScreen(),
         '/add-bin': (context) => AddBinScreen(),
         '/requests': (context) => ViewRequestsScreen(),
+        '/userHome': (context) => UserHomeScreen(),
       },
     );
   }
