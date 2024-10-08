@@ -47,142 +47,142 @@ class _SpecialRequestsForSchedulingScreenState extends State<SpecialRequestsForS
       drawer: Sidebar(), // Add sidebar here
 
       body: StreamBuilder<QuerySnapshot>(
-  stream: FirebaseFirestore.instance.collection('specialWasteRequests').snapshots(),
-  builder: (context, snapshot) {
-    if (!snapshot.hasData) {
-      return Center(child: CircularProgressIndicator());
-    }
+        stream: FirebaseFirestore.instance.collection('specialWasteRequests').snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Center(child: CircularProgressIndicator());
+          }
 
-    // Fetch all requests
-    final requests = snapshot.data!.docs;
+          // Fetch all requests
+          final requests = snapshot.data!.docs;
 
-    // Sort requests so that pending ones come first
-    requests.sort((a, b) {
-      if (a['status'] == 'pending' && b['status'] != 'pending') {
-        return -1; // `a` should come before `b`
-      } else if (a['status'] != 'pending' && b['status'] == 'pending') {
-        return 1; // `b` should come before `a`
-      } else {
-        return 0; // No change in order if both have same status
-      }
-    });
+          // Sort requests so that pending ones come first
+          requests.sort((a, b) {
+            if (a['status'] == 'pending' && b['status'] != 'pending') {
+              return -1; // `a` should come before `b`
+            } else if (a['status'] != 'pending' && b['status'] == 'pending') {
+              return 1; // `b` should come before `a`
+            } else {
+              return 0; // No change in order if both have same status
+            }
+          });
 
-    if (requests.isEmpty) {
-      return Center(child: Text('No requests found.'));
-    }
+          if (requests.isEmpty) {
+            return Center(child: Text('No requests found.'));
+          }
 
-    return ListView.builder(
-      itemCount: requests.length,
-      itemBuilder: (context, index) {
-        var request = requests[index];
-        String status = request['status'];
-        String requestId = request.id;
-        String userId = request['userId'];
-        List wasteTypes = request['wasteTypes'];
+          return ListView.builder(
+            itemCount: requests.length,
+            itemBuilder: (context, index) {
+              var request = requests[index];
+              String status = request['status'];
+              String requestId = request.id;
+              String userId = request['userId'];
+              List wasteTypes = request['wasteTypes'];
 
-        return Card(
-          margin: EdgeInsets.all(8.0),
-          elevation: 2,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Fetch user data
-                FutureBuilder<DocumentSnapshot>(
-                  future: FirebaseFirestore.instance.collection('users').doc(userId).get(),
-                  builder: (context, userSnapshot) {
-                    if (userSnapshot.connectionState == ConnectionState.waiting) {
-                      return Text('Loading user data...');
-                    }
+              return Card(
+                margin: EdgeInsets.all(8.0),
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Fetch user data
+                      FutureBuilder<DocumentSnapshot>(
+                        future: FirebaseFirestore.instance.collection('users').doc(userId).get(),
+                        builder: (context, userSnapshot) {
+                          if (userSnapshot.connectionState == ConnectionState.waiting) {
+                            return Text('Loading user data...');
+                          }
 
-                    if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
-                      return Text('User not found.');
-                    }
+                          if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
+                            return Text('User not found.');
+                          }
 
-                    var userData = userSnapshot.data!.data() as Map<String, dynamic>;
-                    String userName = userData['name'] ?? 'N/A';
-                    String userEmail = userData['email'] ?? 'N/A';
+                          var userData = userSnapshot.data!.data() as Map<String, dynamic>;
+                          String userName = userData['name'] ?? 'N/A';
+                          String userEmail = userData['email'] ?? 'N/A';
 
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('User: $userName', style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text('Email: $userEmail', style: TextStyle(fontSize: 16)),
-                      ],
-                    );
-                  },
-                ),
-                SizedBox(height: 8.0),
-                // Format the scheduled date to show only the date
-                Text('Scheduled on ${DateFormat('yyyy-MM-dd').format(DateTime.parse(request['scheduledDate']))}', style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(height: 8.0),
-                Text('Status: $status', style: TextStyle(fontSize: 16)),
-                SizedBox(height: 8.0),
-                Text('Address: ${request['address']}', style: TextStyle(fontSize: 16)),
-                Text('City: ${request['city']}', style: TextStyle(fontSize: 16)),
-                SizedBox(height: 8.0),
-                Text('Waste Types:', style: TextStyle(fontWeight: FontWeight.bold)),
-                ...wasteTypes.map((waste) {
-                  return Text('${waste['type']} - ${waste['weight']} kg');
-                }).toList(),
-                SizedBox(height: 8.0),
-                
-                ElevatedButton(
-                  onPressed: () {
-                    // Pass the necessary details to the CreateSpecialSchedulePage
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => CreateSpecialSchedulePage(
-                          requestId: request.id,
-                          city: request['city'],
-                          scheduledDate: request['scheduledDate'],
-                          address: request['address'],
-                          wasteTypes: request['wasteTypes'],
-                        ),
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('User: $userName', style: TextStyle(fontWeight: FontWeight.bold)),
+                              Text('Email: $userEmail', style: TextStyle(fontSize: 16)),
+                            ],
+                          );
+                        },
                       ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 73, 204, 255),
-                    textStyle: TextStyle(color: const Color.fromARGB(255, 0, 0, 0)),
-                  ),
-                  child: Text('Create'), // Display "Create" text
-                ),
-                
-                if (status == 'pending')
-                  ElevatedButton(
-                    onPressed: () {
-                      _markAsScheduleCreated(requestId);
-                    },
-                    child: Text('Pending'),
-                  )
-                else
-                  Text('Schedule Created', style: TextStyle(color: Colors.green)),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  },
-),
+                      SizedBox(height: 8.0),
+                      // Format the scheduled date to show only the date
+                      Text('Scheduled on ${DateFormat('yyyy-MM-dd').format(DateTime.parse(request['scheduledDate']))}', style: TextStyle(fontWeight: FontWeight.bold)),
+                      SizedBox(height: 8.0),
+                      Text('Status: $status', style: TextStyle(fontSize: 16)),
+                      SizedBox(height: 8.0),
+                      Text('Address: ${request['address']}', style: TextStyle(fontSize: 16)),
+                      Text('City: ${request['city']}', style: TextStyle(fontSize: 16)),
+                      SizedBox(height: 8.0),
+                      Text('Waste Types:', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ...wasteTypes.map((waste) {
+                        return Text('${waste['type']} - ${waste['weight']} kg');
+                      }).toList(),
+                      SizedBox(height: 8.0),
 
+                      // Create button is displayed only if status is not 'Schedule Created'
+                      if (status != 'schedule created') // Add this condition
+                        ElevatedButton(
+                          onPressed: () {
+                            // Pass the necessary details to the CreateSpecialSchedulePage
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CreateSpecialSchedulePage(
+                                  requestId: request.id,
+                                  city: request['city'],
+                                  scheduledDate: request['scheduledDate'],
+                                  address: request['address'],
+                                  wasteTypes: request['wasteTypes'],
+                                ),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(255, 73, 204, 255),
+                            textStyle: TextStyle(color: const Color.fromARGB(255, 0, 0, 0)),
+                          ),
+                          child: Text('Create'), // Display "Create" text
+                        ),
+
+                      if (status == 'pending')
+                        ElevatedButton(
+                          onPressed: () {
+                            _markAsScheduleCreated(requestId);
+                          },
+                          child: Text('Pending'),
+                        )
+                      else
+                        Text('Schedule Created', style: TextStyle(color: Colors.green)),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
   Future<void> _markAsScheduleCreated(String requestId) async {
-  await FirebaseFirestore.instance
-      .collection('specialWasteRequests')
-      .doc(requestId)
-      .update({'status': 'schedule created'});
+    await FirebaseFirestore.instance
+        .collection('specialWasteRequests')
+        .doc(requestId)
+        .update({'status': 'schedule created'});
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Schedule created for this request.')),
-  );
-}
-
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Schedule created for this request.')),
+    );
+  }
 }
 
 // Sidebar widget
@@ -209,7 +209,7 @@ class Sidebar extends StatelessWidget {
             leading: Icon(Icons.home),
             title: Text('Home'),
             onTap: () {
-             Navigator.pop(context); // Close the drawer
+              Navigator.pop(context); // Close the drawer
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => HomeScreen()),
@@ -224,8 +224,10 @@ class Sidebar extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => WasteCollectionSchedule()),
-              );            },
-          ),ListTile(
+              );
+            },
+          ),
+          ListTile(
             leading: Icon(Icons.list),
             title: Text('Special Requests'),
             onTap: () {
@@ -237,7 +239,7 @@ class Sidebar extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: Icon(Icons.list),
+            leading: Icon(Icons.schedule),
             title: Text('Special Schedules'),
             onTap: () {
               Navigator.pop(context); // Close the drawer

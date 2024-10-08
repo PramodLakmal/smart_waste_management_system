@@ -1,23 +1,21 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:smart_waste_management_system/screens/admin/special_schedule_details.dart';
 import 'package:smart_waste_management_system/screens/admin/create_schedule.dart';
-import 'package:smart_waste_management_system/screens/admin/schedule_details.dart';
+import 'package:smart_waste_management_system/screens/admin/create_special_schedule.dart';
 import 'package:smart_waste_management_system/screens/admin/special_requests_for_scheduling.dart';
-import 'package:smart_waste_management_system/screens/admin/waste_collection_schedule.dart'; // Import WasteCollectionSchedule
+import 'package:smart_waste_management_system/screens/admin/waste_collection_schedule.dart';
 import 'package:smart_waste_management_system/screens/home_screen.dart';
-import '../../models/schedule_model.dart';
+import '../../models/special_schedule_model.dart';
 
-class SpecialWasteCollectionSchedule extends StatefulWidget {
-  @override
-  _SpecialWasteCollectionScheduleState createState() => _SpecialWasteCollectionScheduleState();
-}
+class SpecialWasteCollectionSchedule extends StatelessWidget {
+  const SpecialWasteCollectionSchedule({Key? key}) : super(key: key);
 
-class _SpecialWasteCollectionScheduleState extends State<SpecialWasteCollectionSchedule> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Special Waste Collection Schedule'),
+        title: const Text('Special Waste Collection Schedule'),
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -42,78 +40,61 @@ class _SpecialWasteCollectionScheduleState extends State<SpecialWasteCollectionS
           ),
         ],
       ),
-      drawer: Sidebar(), // Add sidebar here
-      body: Column(
-        children: [
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('special_schedules') // Adjust your collection name if necessary
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
+      drawer: Sidebar(),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('specialschedule').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('No Special Schedules found.'));
+          }
 
-                List<Schedule> schedules = snapshot.data!.docs
-                    .map((doc) => Schedule.fromFirestore(doc))
-                    .toList();
+          List<SpecialSchedule> schedules = snapshot.data!.docs.map((doc) {
+            return SpecialSchedule.fromFirestore(doc);
+          }).toList();
 
-                return ListView.builder(
-                  itemCount: schedules.length,
-                  itemBuilder: (context, index) {
-                    final schedule = schedules[index];
-                    return _buildScheduleCard(schedule);
+          return ListView.builder(
+            itemCount: schedules.length,
+            itemBuilder: (context, index) {
+              SpecialSchedule schedule = schedules[index];
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                child: ListTile(
+                  title: Text('Schedule: ${schedule.address}, ${schedule.city}'),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Request ID: ${schedule.requestId}'),
+                      Text('Scheduled Date: ${schedule.scheduledDate.toLocal()}'),
+                      Text('Status: ${schedule.status}'),
+                      Text('Vehicle Number: ${schedule.vehicleNumber}'),
+                      Text('Waste Collector: ${schedule.wasteCollector}'),
+                      const SizedBox(height: 8),
+                      Text('Waste Types:'),
+                      for (var waste in schedule.wasteTypes)
+                        Text('Type: ${waste.type}, Weight: ${waste.weight}kg'),
+                    ],
+                  ),
+                  trailing: Icon(Icons.arrow_forward),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SpecialScheduleDetailsPage(specialSchedule: schedule,)),
+                    );
                   },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildScheduleCard(Schedule schedule) {
-    return GestureDetector(
-      onTap: () {
-        // Navigate to the ScheduleDetailsPage with the selected schedule
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ScheduleDetailsPage(schedule: schedule), // Correct page
-          ),
-        );
-      },
-      child: Card(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: Colors.grey[200]!),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                schedule.collectionZone,
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              // Add more details about the schedule
-            ],
-          ),
-        ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
 }
 
-// Sidebar widget
 class Sidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -137,7 +118,7 @@ class Sidebar extends StatelessWidget {
             leading: Icon(Icons.home),
             title: Text('Home'),
             onTap: () {
-             Navigator.pop(context); // Close the drawer
+              Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => HomeScreen()),
@@ -148,16 +129,18 @@ class Sidebar extends StatelessWidget {
             leading: Icon(Icons.schedule),
             title: Text('Waste Collection Schedule'),
             onTap: () {
-              Navigator.pop(context); // Close the drawer
+              Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => WasteCollectionSchedule()),
-              );            },
-          ),ListTile(
+              );
+            },
+          ),
+          ListTile(
             leading: Icon(Icons.list),
             title: Text('Special Requests'),
             onTap: () {
-              Navigator.pop(context); // Close the drawer
+              Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => SpecialRequestsForSchedulingScreen()),
@@ -165,10 +148,10 @@ class Sidebar extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: Icon(Icons.list),
+            leading: Icon(Icons.schedule),
             title: Text('Special Schedules'),
             onTap: () {
-              Navigator.pop(context); // Close the drawer
+              Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => SpecialWasteCollectionSchedule()),
