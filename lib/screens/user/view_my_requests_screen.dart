@@ -29,10 +29,6 @@ class _ViewRequestsScreenState extends State<ViewRequestsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('My Special Waste Requests'),
-        backgroundColor: Colors.green,
-      ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('specialWasteRequests')

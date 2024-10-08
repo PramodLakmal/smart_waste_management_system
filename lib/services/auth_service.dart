@@ -6,16 +6,29 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Sign in method
-  Future<bool> signIn(String email, String password) async {
+  Future<Map<String, dynamic>?> signIn(String email, String password) async {
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      return true; // Return true if login is successful
+
+      // Fetch user role from Firestore after successful login
+      User? user = userCredential.user;
+      if (user != null) {
+        DocumentSnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        if (userDoc.exists) {
+          return userDoc.data(); // Return user data including role
+        }
+      }
+      return null;
     } catch (e) {
       print(e.toString());
-      return false; // Return false if login fails
+      return null; // Return null if login fails or fetching role fails
     }
   }
 
