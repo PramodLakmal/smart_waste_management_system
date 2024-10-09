@@ -91,7 +91,7 @@ class _RouteMonitoringScreenState extends State<RouteMonitoringScreen> {
                                     });
                                   },
                                 ),
-                                Text('${schedule.collectionZone} Route', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                Text('${schedule.city} Route', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                               ],
                             ),
                             subtitle: Text(

@@ -23,31 +23,88 @@ class CreateSpecialSchedulePage extends StatefulWidget {
 class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
   final TextEditingController _collectorController = TextEditingController();
   final TextEditingController _vehicleController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
 
   Future<void> _createSpecialSchedule() async {
-    // Create the special schedule document in the 'specialschedule' collection
-    await FirebaseFirestore.instance.collection('specialschedule').add({
-      'requestId': widget.requestId,
-      'city': widget.city,
-      'scheduledDate': widget.scheduledDate,
-      'address': widget.address,
-      'wasteTypes': widget.wasteTypes,
-      'wasteCollector': _collectorController.text,
-      'vehicleNumber': _vehicleController.text,
-      'status': 'schedule created',
-    });
+    if (!_formKey.currentState!.validate()) return;
 
-    // Update the status of the special waste request to 'schedule created'
-    await FirebaseFirestore.instance
-        .collection('specialWasteRequests')
-        .doc(widget.requestId)
-        .update({'status': 'schedule created'});
+    setState(() => _isLoading = true);
+    try {
+      await FirebaseFirestore.instance.collection('specialschedule').add({
+        'requestId': widget.requestId,
+        'city': widget.city,
+        'scheduledDate': widget.scheduledDate,
+        'address': widget.address,
+        'wasteTypes': widget.wasteTypes,
+        'wasteCollector': _collectorController.text,
+        'vehicleNumber': _vehicleController.text,
+        'status': 'schedule created',
+        'createdAt': DateTime.now(),
+      });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Special schedule created successfully.')),
+      await FirebaseFirestore.instance
+          .collection('specialWasteRequests')
+          .doc(widget.requestId)
+          .update({'status': 'schedule created'});
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Schedule created successfully'),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error creating schedule. Please try again.'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Widget _buildInfoCard(String title, String value, IconData icon) {
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.blue, size: 24),
+            SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
-
-    Navigator.pop(context); // Go back after creation
   }
 
   @override
@@ -55,46 +112,142 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Create Special Schedule'),
+        elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Pre-filled fields
-            TextFormField(
-              initialValue: widget.city,
-              decoration: InputDecoration(labelText: 'City'),
-              enabled: false,
+      body: SingleChildScrollView(
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Request Information Section
+                  _buildInfoCard('City', widget.city, Icons.location_city),
+                  SizedBox(height: 12),
+                  _buildInfoCard('Date', widget.scheduledDate, Icons.calendar_today),
+                  SizedBox(height: 12),
+                  _buildInfoCard('Address', widget.address, Icons.location_on),
+                  
+                  // Waste Types Section
+                  Card(
+                    elevation: 2,
+                    margin: EdgeInsets.symmetric(vertical: 16),
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.delete_outline, color: Colors.blue),
+                              SizedBox(width: 8),
+                              Text(
+                                'Waste Types',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Divider(height: 24),
+                          ...widget.wasteTypes.map((waste) => Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  waste['type'],
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                                Text(
+                                  '${waste['weight']} kg',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )).toList(),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Input Fields
+                  Card(
+                    elevation: 2,
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          TextFormField(
+                            controller: _collectorController,
+                            decoration: InputDecoration(
+                              labelText: 'Waste Collector',
+                              prefixIcon: Icon(Icons.person),
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (value?.isEmpty ?? true) {
+                                return 'Please enter waste collector name';
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(height: 16),
+                          TextFormField(
+                            controller: _vehicleController,
+                            decoration: InputDecoration(
+                              labelText: 'Vehicle Number',
+                              prefixIcon: Icon(Icons.local_shipping),
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (value?.isEmpty ?? true) {
+                                return 'Please enter vehicle number';
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  SizedBox(height: 24),
+
+                  // Submit Button
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _createSpecialSchedule,
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: _isLoading
+                        ? CircularProgressIndicator(color: Colors.white)
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.schedule),
+                              SizedBox(width: 8),
+                              Text(
+                                'Create Schedule',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ],
+                          ),
+                  ),
+                ],
+              ),
             ),
-            TextFormField(
-              initialValue: widget.scheduledDate,
-              decoration: InputDecoration(labelText: 'Scheduled Date'),
-              enabled: false,
-            ),
-            TextFormField(
-              initialValue: widget.address,
-              decoration: InputDecoration(labelText: 'Address'),
-              enabled: false,
-            ),
-            Text('Waste Types:', style: TextStyle(fontWeight: FontWeight.bold)),
-            ...widget.wasteTypes.map((waste) {
-              return Text('${waste['type']} - ${waste['weight']} kg');
-            }).toList(),
-            // Input fields for waste collector and vehicle number
-            TextFormField(
-              controller: _collectorController,
-              decoration: InputDecoration(labelText: 'Waste Collector'),
-            ),
-            TextFormField(
-              controller: _vehicleController,
-              decoration: InputDecoration(labelText: 'Vehicle Number'),
-            ),
-            SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: _createSpecialSchedule,
-              child: Text('Create Schedule'),
-            ),
-          ],
+          ),
         ),
       ),
     );

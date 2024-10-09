@@ -6,8 +6,8 @@ import 'package:smart_waste_management_system/screens/admin/schedule_details.dar
 import 'package:smart_waste_management_system/screens/admin/special_requests_for_scheduling.dart';
 import 'package:smart_waste_management_system/screens/home_screen.dart';
 import 'special_waste_collection_schedule.dart'; // Import your SpecialWasteCollectionSchedule page here
-
 import '../../models/schedule_model.dart';
+
 
 class WasteCollectionSchedule extends StatefulWidget {
   @override
@@ -19,7 +19,6 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
   String selectedMonth = DateFormat('MMMM').format(DateTime.now());
   bool isMonthView = true;
 
-  // Group schedules by month
   Map<String, List<Schedule>> groupSchedulesByMonth(List<Schedule> schedules) {
     Map<String, List<Schedule>> grouped = {};
     for (var schedule in schedules) {
@@ -32,7 +31,6 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
     return grouped;
   }
 
-  // Calculate duration between start and end time
   String getDuration(Schedule schedule) {
     Duration duration = schedule.endTime.difference(schedule.startTime);
     int hours = duration.inHours;
@@ -47,34 +45,26 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: Text('Waste Collecting Schedule'),
+        title: Text('Waste Collection Schedule', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         elevation: 0,
+        iconTheme: IconThemeData(color: Colors.black87),
         actions: [
-          IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: Icon(Icons.notifications_none),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: Icon(Icons.filter_list),
-            onPressed: () {},
-          ),
+          IconButton(icon: Icon(Icons.search), onPressed: () {}),
+          IconButton(icon: Icon(Icons.notifications_none), onPressed: () {}),
+          IconButton(icon: Icon(Icons.filter_list), onPressed: () {}),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: CircleAvatar(
-              backgroundColor: const Color.fromARGB(255, 73, 204, 255),
-              child: Text('A'),
+              backgroundColor: Colors.blue[700],
+              child: Text('A', style: TextStyle(color: Colors.white)),
             ),
           ),
         ],
       ),
-      drawer: Sidebar(), // Add sidebar here
+      drawer: Sidebar(),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -87,7 +77,7 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return Center(child: Text('Error: ${snapshot.error}', style: TextStyle(color: Colors.red)));
                 }
 
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -98,8 +88,7 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
                     .map((doc) => Schedule.fromFirestore(doc))
                     .toList();
 
-                Map<String, List<Schedule>> groupedSchedules =
-                    groupSchedulesByMonth(schedules);
+                Map<String, List<Schedule>> groupedSchedules = groupSchedulesByMonth(schedules);
 
                 return ListView(
                   padding: EdgeInsets.all(16),
@@ -109,6 +98,17 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => CreateSchedulePage()),
+          );
+        },
+        icon: Icon(Icons.add),
+        label: Text('Create Schedule'),
+        backgroundColor: Colors.blue[700],
       ),
     );
   }
@@ -124,56 +124,41 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
             children: [
               Text(
                 selectedYear.toString(),
-                style: TextStyle(fontSize: 16),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               SizedBox(width: 8),
-              TextButton(
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.purple,
-                ),
+              TextButton.icon(
+                icon: Icon(Icons.arrow_drop_down, color: Colors.blue[700]),
+                label: Text(selectedMonth, style: TextStyle(color: Colors.blue[700], fontWeight: FontWeight.bold)),
                 onPressed: () {
                   // Show month selector
                 },
-                child: Text(selectedMonth),
-              ),
-              Spacer(), // This will push the button to the right
-              ElevatedButton(
-                onPressed: () {
-                  // Navigate to create schedule page
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => CreateSchedulePage()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:const Color.fromARGB(255, 73, 204, 255),
-                  textStyle: TextStyle(color: const Color.fromARGB(255, 0, 0, 0)),
-                ),
-                child: Text('Create'), // Display "Create" text
               ),
             ],
           ),
-          SizedBox(height: 8),
+          SizedBox(height: 16),
           Row(
             children: [
-              ChoiceChip(
-                label: Text('Week'),
-                selected: !isMonthView,
-                onSelected: (selected) {
-                  setState(() => isMonthView = !selected);
-                },
-              ),
-              SizedBox(width: 8),
-              ChoiceChip(
-                label: Text('Month'),
-                selected: isMonthView,
-                onSelected: (selected) {
-                  setState(() => isMonthView = selected);
-                },
-              ),
+              _buildViewToggleButton('Week', !isMonthView),
+              SizedBox(width: 16),
+              _buildViewToggleButton('Month', isMonthView),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildViewToggleButton(String label, bool isSelected) {
+    return ElevatedButton(
+      onPressed: () {
+        setState(() => isMonthView = label == 'Month');
+      },
+      child: Text(label),
+      style: ElevatedButton.styleFrom(
+        foregroundColor: isSelected ? Colors.white : Colors.black87, backgroundColor: isSelected ? Colors.blue[700] : Colors.grey[200],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       ),
     );
   }
@@ -184,7 +169,7 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
     groupedSchedules.forEach((month, schedules) {
       widgets.add(
         Padding(
-          padding: EdgeInsets.only(bottom: 16),
+          padding: EdgeInsets.only(bottom: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -194,21 +179,23 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
                     month.toUpperCase(),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: 18,
+                      color: Colors.blue[700],
                     ),
                   ),
                   SizedBox(width: 8),
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.grey[200],
+                      color: Colors.blue[50],
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
                       '${schedules.length} Schedules',
                       style: TextStyle(
                         fontSize: 12,
-                        color: const Color.fromARGB(255, 0, 0, 0),
+                        color: Colors.blue[700],
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
@@ -219,8 +206,8 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 5, // Adjust the number of columns here
-                  childAspectRatio: 2.6, // Adjust the aspect ratio here to shorten the height
+                  crossAxisCount: 3,
+                  childAspectRatio: 2.5,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
                 ),
@@ -240,107 +227,102 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
   }
 
   Widget _buildScheduleCard(Schedule schedule) {
-  Color borderColor = schedule.status == 'completed' ? Colors.green : const Color.fromARGB(255, 132, 199, 243);
-  Color backgroundColor = schedule.status == 'completed' ? Colors.green.withOpacity(0.1) : const Color.fromARGB(255, 132, 199, 243); // Set background color
+    Color borderColor = schedule.status == 'completed' ? Colors.green : Colors.orange;
+    Color backgroundColor = schedule.status == 'completed' ? Colors.green[50]! : Colors.orange[50]!;
 
-  return GestureDetector(
-    onTap: () {
-      // Navigate to the ScheduleDetailsPage with the selected schedule
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ScheduleDetailsPage(schedule: schedule), // Correct page
+    int requestCount = schedule.userIds.length;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ScheduleDetailsPage(schedule: schedule),
+          ),
+        );
+      },
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: borderColor, width: 2),
         ),
-      );
-    },
-    child: Card(
-      elevation: 5,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: const Color.fromARGB(255, 0, 0, 0)),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: backgroundColor, // Add background color here
-          border: Border(
-            left: BorderSide(
-              color: borderColor,
-              width: 4,
+        child: Container(
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        schedule.city,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.black87,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Icon(Icons.share, size: 18, color: Colors.blue[700]),
+                  ],
+                ),
+                SizedBox(height: 8),
+                _buildInfoRow(Icons.access_time, getDuration(schedule)),
+                SizedBox(height: 4),
+                _buildInfoRow(Icons.local_shipping, schedule.vehicleNumber),
+                SizedBox(height: 4),
+                _buildInfoRow(Icons.person_outline, schedule.wasteCollector),
+                SizedBox(height: 4),
+                _buildInfoRow(Icons.group, '$requestCount request${requestCount == 1 ? '' : 's'}'),
+                SizedBox(height: 8),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: schedule.status == 'completed' ? Colors.green : Colors.orange,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    schedule.status == 'completed' ? 'Completed' : 'Pending',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
-        child: Padding(
-          padding: EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      schedule.collectionZone,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Icon(Icons.share, size: 16, color: const Color.fromARGB(255, 0, 0, 0)),
-                ],
-              ),
-              SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(Icons.access_time, size: 16, color: const Color.fromARGB(255, 8, 8, 8)),
-                  SizedBox(width: 4),
-                  Text(
-                    getDuration(schedule),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: const Color.fromARGB(255, 0, 0, 0),
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Icon(Icons.local_shipping, size: 16, color: const Color.fromARGB(255, 0, 0, 0)),
-                  SizedBox(width: 4),
-                  Text(
-                    schedule.vehicleNumber,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: const Color.fromARGB(255, 0, 0, 0),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(Icons.person_outline, size: 16, color: Colors.grey),
-                  SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      schedule.wasteCollector,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: const Color.fromARGB(255, 0, 0, 0),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: Colors.grey[600]),
+        SizedBox(width: 4),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(fontSize: 12, color: Colors.grey[800]),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
-      ),
-    ),
-  );
-}
-
+      ],
+    );
+  }
 }
 
 // Sidebar widget
@@ -348,72 +330,119 @@ class Sidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: <Widget>[
-          DrawerHeader(
+      child: Column(
+        children: [
+          Container(
+            height: 200,
             decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 73, 204, 255),
+              color: Colors.blue[700],
             ),
-            child: Text(
-              'Menu',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
+            child: Stack(
+              children: [
+                Positioned(
+                  bottom: 20,
+                  left: 20,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Colors.white,
+                        child: Text(
+                          'S',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue[700],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 12),
+                      Text(
+                        'Scheduling',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _buildDrawerItem(
+            context,
+            Icons.home,
+            'Home',
+            () => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            ),
+          ),
+          _buildDrawerItem(
+            context,
+            Icons.schedule,
+            'Waste Collection Schedule',
+            () => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => WasteCollectionSchedule()),
+            ),
+            isSelected: true,
+          ),
+          _buildDrawerItem(
+            context,
+            Icons.list_alt,
+            'Special Requests',
+            () => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SpecialRequestsForSchedulingScreen(),
               ),
             ),
           ),
-          ListTile(
-            leading: Icon(Icons.home),
-            title: Text('Home'),
-            onTap: () {
-             Navigator.pop(context); // Close the drawer
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => HomeScreen()),
-              );
-            },
+          _buildDrawerItem(
+            context,
+            Icons.calendar_today,
+            'Special Schedules',
+            () => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SpecialWasteCollectionSchedule(),
+              ),
+            ),
           ),
-          ListTile(
-            leading: Icon(Icons.schedule),
-            title: Text('Waste Collection Schedule'),
-            onTap: () {
-              Navigator.pop(context); // Close the drawer
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => WasteCollectionSchedule()),
-              );            },
-          ),ListTile(
-            leading: Icon(Icons.list),
-            title: Text('Special Requests'),
-            onTap: () {
-              Navigator.pop(context); // Close the drawer
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SpecialRequestsForSchedulingScreen()),
-              );
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.schedule),
-            title: Text('Special Schedules'),
-            onTap: () {
-              Navigator.pop(context); // Close the drawer
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SpecialWasteCollectionSchedule()),
-              );
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.settings),
-            title: Text('Settings'),
-            onTap: () {
-              // Navigate to Settings Page
-            },
-          ),
+          SizedBox(height: 20),
         ],
       ),
+    );
+  }
+
+  Widget _buildDrawerItem(
+    BuildContext context,
+    IconData icon,
+    String title,
+    VoidCallback onTap, {
+    bool isSelected = false,
+    bool showTrailing = true,
+  }) {
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: isSelected ? Colors.blue[700] : Colors.grey[700],
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isSelected ? Colors.blue[700] : Colors.grey[900],
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+      trailing: showTrailing ? Icon(Icons.chevron_right) : null,
+      selected: isSelected,
+      selectedTileColor: Colors.blue[50],
+      onTap: onTap,
     );
   }
 }
