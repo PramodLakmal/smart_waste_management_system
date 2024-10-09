@@ -1,79 +1,125 @@
 import 'package:flutter/material.dart';
-import '../../models/waste_record_model.dart';
-import '../../services/waste_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class WasteEntryScreen extends StatefulWidget {
   final String routeId;
-  final WasteRecord? wasteRecord;
   final String wasteCollector;
+  String vehicleNumber;
 
-  WasteEntryScreen(
-      {required this.routeId, this.wasteRecord, required this.wasteCollector});
+  WasteEntryScreen({required this.routeId, required this.wasteCollector, required this.vehicleNumber});
 
   @override
   _WasteEntryScreenState createState() => _WasteEntryScreenState();
 }
 
 class _WasteEntryScreenState extends State<WasteEntryScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _fetchVehicleNumber();
+  }
+
+  Future<void> _fetchVehicleNumber() async {
+    // Fetch the vehicle number based on the routeId
+    // Adjust your Firestore query as needed
+    DocumentSnapshot snapshot = (await FirebaseFirestore.instance
+        .collection('schedules')
+        .get()) as DocumentSnapshot<Object?>;
+
+    if (snapshot.exists) {
+      setState(() {
+        widget.vehicleNumber = snapshot['vehicleNumber']; // Ensure the field matches your Firestore schema
+      });
+    }
+  }
   final _formKey = GlobalKey<FormState>();
-  String _wasteType = '';
-  double _weight = 0.0;
-  String _status = 'Pending'; // Default status
+  String? _wasteType;
+  double? _wasteWeight;
+
+  // Method to save the waste entry to Firestore
+  Future<void> _saveWasteEntry() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+
+      try {
+        await FirebaseFirestore.instance.collection('waste_entries').add({
+          'routeId': widget.routeId,
+          'wasteCollector': widget.wasteCollector,
+          'vehicleNumber': widget.vehicleNumber, // Using passed vehicle number
+          'wasteType': _wasteType,
+          'wasteWeight': _wasteWeight,
+          'timestamp': Timestamp.now(),
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Waste entry added successfully!')),
+        );
+
+        Navigator.pop(context); // Go back after saving
+      } catch (e) {
+        print('Error adding waste entry: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to add waste entry')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    String wasteCollector = widget.wasteCollector; // Use passed wasteCollector
-
     return Scaffold(
       appBar: AppBar(
-        title: Text('Waste Entry'),
+        title: Text('Add Waste Entry',
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormField(
+              // Dropdown for Waste Type
+              DropdownButtonFormField<String>(
                 decoration: InputDecoration(labelText: 'Waste Type'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a waste type';
-                  }
-                  return null;
-                },
+                items: ['Organic', 'Plastic', 'Metal', 'Glass', 'E-waste']
+                    .map((type) => DropdownMenuItem(value: type, child: Text(type)))
+                    .toList(),
                 onChanged: (value) {
-                  _wasteType = value;
+                  setState(() {
+                    _wasteType = value;
+                  });
                 },
+                validator: (value) =>
+                    value == null ? 'Please select a waste type' : null,
               ),
+              SizedBox(height: 16),
+              // Input field for Waste Weight
               TextFormField(
-                decoration: InputDecoration(labelText: 'Weight (kg)'),
+                decoration: InputDecoration(labelText: 'Waste Weight (kg)'),
                 keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a weight';
-                  }
-                  return null;
+                onSaved: (value) {
+                  _wasteWeight = double.tryParse(value ?? '0');
                 },
-                onChanged: (value) {
-                  _weight = double.tryParse(value) ?? 0.0;
-                },
+                validator: (value) => value == null || value.isEmpty
+                    ? 'Please enter the weight'
+                    : null,
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 32),
+              // Submit button
               ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    // Create a new waste record
-                    WasteRecord newRecord = WasteRecord(
-                      id: '', // ID generated by Firestore
-                      wasteType: _wasteType,
-                      weight: _weight,
-                      wasteCollector: wasteCollector,
-                      status: _status,
-                    );
-                  }
-                },
-                child: Text('Submit'),
+                onPressed: _saveWasteEntry,
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: Colors.teal,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Center(
+                  child: Text('Submit Entry',
+                      style: TextStyle(fontSize: 16, color: Colors.white)),
+                ),
               ),
             ],
           ),
