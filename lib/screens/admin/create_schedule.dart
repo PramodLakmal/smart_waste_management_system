@@ -14,24 +14,25 @@ class CreateSchedulePage extends StatefulWidget {
 
 class _CreateSchedulePageState extends State<CreateSchedulePage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _zoneController = TextEditingController();
   final TextEditingController _vehicleController = TextEditingController();
   final TextEditingController _collectorController = TextEditingController();
-  final TextEditingController _locationController = TextEditingController();
   late DateTime _startDate;
   late DateTime _endDate;
   late TimeOfDay _startTime;
   late TimeOfDay _endTime;
+
+  String? _selectedCity;
+  List<String> _cities = [];
+  List<String> _userIdsFromCity = [];
 
   @override
   void initState() {
     super.initState();
     if (widget.schedule != null) {
       // Pre-fill form fields for editing
-      _zoneController.text = widget.schedule!.collectionZone;
+      _selectedCity = widget.schedule!.city;
       _vehicleController.text = widget.schedule!.vehicleNumber;
       _collectorController.text = widget.schedule!.wasteCollector;
-      _locationController.text = widget.schedule!.location;
       _startDate = widget.schedule!.startTime;
       _endDate = widget.schedule!.endTime;
       _startTime = TimeOfDay.fromDateTime(widget.schedule!.startTime);
@@ -43,8 +44,94 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
       _startTime = TimeOfDay.now();
       _endTime = TimeOfDay.now();
     }
+    _fetchCities();
   }
 
+  // Fetch unique cities from 'users' collection
+  Future<void> _fetchCities() async {
+    QuerySnapshot usersSnapshot = await FirebaseFirestore.instance.collection('users').get();
+    final cities = usersSnapshot.docs.map((doc) => doc['city'] as String).toSet().toList();
+
+    setState(() {
+      _cities = cities;
+    });
+  }
+
+  // Fetch users from selected city and check if they've requested waste collection
+  Future<void> _fetchUsersFromCity() async {
+    QuerySnapshot usersSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('city', isEqualTo: _selectedCity)
+        .get();
+
+    List<String> userIds = [];
+    for (var doc in usersSnapshot.docs) {
+      String userId = doc['uid'];
+
+      // Check if the user has a pending waste collection request
+      QuerySnapshot requestsSnapshot = await FirebaseFirestore.instance
+          .collection('wasteCollectionRequests')
+          .where('userId', isEqualTo: userId)
+          .where('isCollected', isEqualTo: false) // Check for uncollected requests
+          .get();
+
+      if (requestsSnapshot.docs.isNotEmpty) {
+        userIds.add(userId);
+      }
+    }
+
+    setState(() {
+      _userIdsFromCity = userIds;
+    });
+  }
+
+  Future<void> _submit() async {
+    if (_formKey.currentState!.validate()) {
+      await _fetchUsersFromCity(); // Fetch users before submission
+
+      DateTime startDateTime = DateTime(
+        _startDate.year,
+        _startDate.month,
+        _startDate.day,
+        _startTime.hour,
+        _startTime.minute,
+      );
+      DateTime endDateTime = DateTime(
+        _endDate.year,
+        _endDate.month,
+        _endDate.day,
+        _endTime.hour,
+        _endTime.minute,
+      );
+
+      final schedule = Schedule(
+        id: widget.schedule?.id,
+        city: _selectedCity!,
+        vehicleNumber: _vehicleController.text,
+        wasteCollector: _collectorController.text,
+        startTime: startDateTime,
+        endTime: endDateTime,
+      );
+
+      final scheduleData = schedule.toMap();
+      scheduleData['userIds'] = _userIdsFromCity; // Add user IDs to the schedule
+
+      if (widget.schedule == null) {
+        // Create new schedule
+        await FirebaseFirestore.instance.collection('schedules').add(scheduleData);
+      } else {
+        // Update existing schedule
+        await FirebaseFirestore.instance
+            .collection('schedules')
+            .doc(widget.schedule!.id)
+            .update(scheduleData);
+      }
+
+      Navigator.pop(context);
+    }
+  }
+
+  // Method for picking the date
   Future<void> _pickDate({required bool isStartDate}) async {
     DateTime initialDate = isStartDate ? _startDate : _endDate;
     final DateTime? pickedDate = await showDatePicker(
@@ -64,6 +151,7 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
     }
   }
 
+  // Method for picking the time
   Future<void> _pickTime({required bool isStartTime}) async {
     final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
@@ -77,48 +165,6 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
           _endTime = pickedTime;
         }
       });
-    }
-  }
-
-  Future<void> _submit() async {
-    if (_formKey.currentState!.validate()) {
-      DateTime startDateTime = DateTime(
-        _startDate.year,
-        _startDate.month,
-        _startDate.day,
-        _startTime.hour,
-        _startTime.minute,
-      );
-      DateTime endDateTime = DateTime(
-        _endDate.year,
-        _endDate.month,
-        _endDate.day,
-        _endTime.hour,
-        _endTime.minute,
-      );
-
-      final schedule = Schedule(
-        id: widget.schedule?.id,
-        collectionZone: _zoneController.text,
-        vehicleNumber: _vehicleController.text,
-        wasteCollector: _collectorController.text,
-        startTime: startDateTime,
-        endTime: endDateTime,
-        location: _locationController.text,
-      );
-
-      if (widget.schedule == null) {
-        // Create new schedule
-        await FirebaseFirestore.instance.collection('schedules').add(schedule.toMap());
-      } else {
-        // Update existing schedule
-        await FirebaseFirestore.instance
-            .collection('schedules')
-            .doc(widget.schedule!.id)
-            .update(schedule.toMap());
-      }
-
-      Navigator.pop(context);
     }
   }
 
@@ -150,13 +196,30 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _textField('Collection Zone:', _zoneController),
+                // City Dropdown
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'City',
+                    border: OutlineInputBorder(),
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                  ),
+                  value: _selectedCity,
+                  items: _cities
+                      .map((city) => DropdownMenuItem(value: city, child: Text(city)))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedCity = value;
+                    });
+                  },
+                  validator: (value) => value == null ? 'Please select a city' : null,
+                ),
                 const SizedBox(height: 8),
+                
                 _textField('Vehicle Number:', _vehicleController),
                 const SizedBox(height: 8),
                 _textField('Waste Collector:', _collectorController),
-                const SizedBox(height: 8),
-                _textField('Location:', _locationController),
                 const SizedBox(height: 16),
                 
                 _dateTimeRow('Start Time:', _startDate, _startTime, () => _pickDate(isStartDate: true), () => _pickTime(isStartTime: true)),
@@ -169,7 +232,6 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    // Edit Button
                     ElevatedButton.icon(
                       onPressed: _submit,
                       icon: Icon(widget.schedule == null ? Icons.add : Icons.edit),
@@ -178,21 +240,9 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
                         backgroundColor: const Color.fromARGB(255, 51, 126, 201),
                       ),
                     ),
-                    
-                    // Delete Button
-                    // if (widget.schedule != null)
-                    //   ElevatedButton.icon(
-                    //     onPressed: () {
-                    //       // Delete Functionality here
-                    //     },
-                    //     icon: Icon(Icons.delete),
-                    //     label: Text('Delete'),
-                    //     style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                    //   ),
                   ],
                 ),
-                
-                // Back Button
+
                 const SizedBox(height: 16),
                 Center(
                   child: ElevatedButton(

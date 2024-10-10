@@ -64,12 +64,12 @@ class ScheduleDetailsPage extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Collection Zone:',
+                      'City:',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey[700]),
                     ),
                     SizedBox(height: 4),
                     Text(
-                      schedule.collectionZone,
+                      schedule.city,
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 16),
@@ -110,16 +110,6 @@ class ScheduleDetailsPage extends StatelessWidget {
                     SizedBox(height: 4),
                     Text(
                       formatDateTime(schedule.endTime),
-                      style: TextStyle(fontSize: 18),
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                      'Location:',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey[700]),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      schedule.location,
                       style: TextStyle(fontSize: 18),
                     ),
                     SizedBox(height: 24),

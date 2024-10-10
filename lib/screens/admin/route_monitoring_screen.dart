@@ -124,12 +124,9 @@ class _RouteMonitoringScreenState extends State<RouteMonitoringScreen> {
                                     });
                                   },
                                 ),
-                                Text(
-                                  '${(schedule is Schedule) ? schedule.collectionZone : (schedule as SpecialSchedule).city} Route',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold),
-                                ),
+
+                                Text('${(schedule is Schedule ? schedule.city : (schedule as SpecialSchedule).city)} Route', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+
                               ],
                             ),
                             subtitle: Text(
