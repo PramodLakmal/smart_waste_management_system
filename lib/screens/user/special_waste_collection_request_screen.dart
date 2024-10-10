@@ -106,6 +106,7 @@ class _SpecialWasteRequestScreenState extends State<SpecialWasteRequestScreen> {
       'scheduledDate': scheduledDate.toIso8601String(),
       'status': status,
       'wasteTypes': wasteTypes, // Array of waste types with their weights
+      'paymentStatus' : 'pending',
     });
 
     // Show a success message and navigate back

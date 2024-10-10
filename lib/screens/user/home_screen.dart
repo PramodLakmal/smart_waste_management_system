@@ -334,6 +334,8 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         'binId': binId,
         'requestedTime': FieldValue.serverTimestamp(),
         'isCollected': false,
+        'isScheduled': false,
+        'paymentStatus': 'pending',
       });
       await FirebaseFirestore.instance.collection('bins').doc(binId).update({
         'collectionRequestSent': true,
