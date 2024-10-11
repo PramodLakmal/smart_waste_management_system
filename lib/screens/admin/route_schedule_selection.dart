@@ -1,104 +1,107 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:smart_waste_management_system/screens/admin/route_monitoring_screen.dart';
-import '../../models/schedule_model.dart';
+import 'route_monitoring_screen.dart';
 
-class RouteScheduleSelection extends StatefulWidget {
-  const RouteScheduleSelection({Key? key}) : super(key: key);
-  
+class ScheduleListScreen extends StatefulWidget {
   @override
-  _RouteScheduleSelectionState createState() => _RouteScheduleSelectionState();
+  _ScheduleListScreenState createState() => _ScheduleListScreenState();
 }
 
-class _RouteScheduleSelectionState extends State<RouteScheduleSelection> {
-  List<Schedule> _schedules = []; // List to hold the fetched schedules
-  bool _isLoading = true; // To show loading indicator
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchSchedules(); // Fetch schedules when the screen is initialized
-  }
-
-  // Method to fetch all schedules from Firestore
-  Future<void> _fetchSchedules() async {
-    try {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('schedules').get();
-
-      setState(() {
-        _schedules = querySnapshot.docs.map((doc) => Schedule.fromFirestore(doc)).toList(); // Map Firestore documents to Schedule model
-        _isLoading = false; // Set loading to false after fetching data
-      });
-    } catch (e) {
-      print("Error fetching schedules: $e");
-      setState(() {
-        _isLoading = false; // Stop loading if there's an error
-      });
-    }
-  }
+class _ScheduleListScreenState extends State<ScheduleListScreen> {
+  String? selectedVehicleNumber; // Holds the selected vehicle number
+  Map<String, dynamic>? selectedSchedule; // Holds the selected schedule details
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Your Schedules', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        title: Text('Normal Schedule List'),
       ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: 16),
-                  Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: Colors.teal),
-                    ),
-                    margin: EdgeInsets.symmetric(vertical: 8.0),
-                    elevation: 4,
-                    child: ListTile(
-                      title: Text('Normal Schedule',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                      subtitle: Text('Employees can work as usual'),
-                      onTap: () {
-                        // Navigate back to the Route Monitoring Screen
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => RouteMonitoringScreen(routeId: '', wasteCollector: '',), // Replace with your actual Route Monitoring Screen
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('schedules').snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Center(child: CircularProgressIndicator());
+          }
+          var schedules = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: schedules.length,
+            itemBuilder: (context, index) {
+              var schedule = schedules[index].data() as Map<String, dynamic>;
+              var vehicleNumber = schedule['vehicleNumber'];
+              var wasteCollector = schedule['wasteCollector'];
+              var city = schedule['city'];
+
+              return ListTile(
+                title: Text('$city Route'),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Vehicle Number: $vehicleNumber'),
+                    Text('Waste Collector: $wasteCollector'),
+                  ],
+                ),
+                leading: Radio(
+                  value: vehicleNumber,
+                  groupValue: selectedVehicleNumber,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedVehicleNumber = value.toString();
+                      selectedSchedule = schedule; // Store the selected schedule
+                    });
+                  },
+                ),
+              );
+            },
+          );
+        },
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ElevatedButton(
+              onPressed: selectedVehicleNumber == null
+                  ? null
+                  : () {
+                      // Navigate to BinIdsScreen with the binIds for the selected waste collector
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BinIdsScreen(
+                            binIds: selectedSchedule!['binIds'], // Pass only the bin IDs
+                            wasteCollector: selectedSchedule!['wasteCollector'], // Pass the waste collector
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: Colors.teal),
-                    ),
-                    margin: EdgeInsets.symmetric(vertical: 8.0),
-                    elevation: 4,
-                    child: ListTile(
-                      title: Text('Special Schedule',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                      subtitle: Text('Employees can work in set schedule'),
-                      onTap: () {
-                        // Navigate back to the Route Monitoring Screen
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => RouteMonitoringScreen(routeId: '', wasteCollector: '',), // Replace with your actual Route Monitoring Screen
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
+                        ),
+                      );
+                    },
+              child: Text('Start Now'),
             ),
+            SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: () {
+                // Implement view summary report functionality
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+              ),
+              child: Text('View Summary Report'),
+            ),
+            SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: () {
+                // Implement view special schedule functionality
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+              ),
+              child: Text('View Special Schedule'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

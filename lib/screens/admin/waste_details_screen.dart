@@ -3,9 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 
 class WasteDetailsScreen extends StatefulWidget {
-  final String wasteCollector;
+  final String wasteCollectorUid;
 
-  const WasteDetailsScreen({super.key, required this.wasteCollector});
+  const WasteDetailsScreen({super.key, required this.wasteCollectorUid, required String routeId, required String wasteCollector, required String vehicleNumber});
 
   @override
   _WasteDetailsScreenState createState() => _WasteDetailsScreenState();
@@ -15,10 +15,11 @@ class _WasteDetailsScreenState extends State<WasteDetailsScreen> {
   bool _showCollected = false;
   Position? _currentLocation; // Variable to hold the current location
 
-  // Fetch waste collection requests
+  // Fetch waste collection requests assigned to the current collector (grouped by UID)
   Stream<QuerySnapshot> _fetchRequests() {
     return FirebaseFirestore.instance
         .collection('wasteCollectionRequests')
+        .where('wasteCollectorUid', isEqualTo: widget.wasteCollectorUid)
         .where('isCollected', isEqualTo: _showCollected)
         .snapshots();
   }
@@ -96,7 +97,7 @@ class _WasteDetailsScreenState extends State<WasteDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Waste Requests for ${widget.wasteCollector}'),
+        title: Text('Waste Requests for ${widget.wasteCollectorUid}'),
         actions: [
           IconButton(
             icon: Icon(_showCollected ? Icons.pending : Icons.pending_outlined),
@@ -130,7 +131,7 @@ class _WasteDetailsScreenState extends State<WasteDetailsScreen> {
               final userId = requestData['userId'];
               final requestedTime = requestData['requestedTime']?.toDate() ?? DateTime.now();
 
-              return FutureBuilder<Map<String, dynamic>?>( // Fetch user and bin details
+              return FutureBuilder<Map<String, dynamic>?>(
                 future: Future.wait([
                   _fetchUserDetails(userId),
                   _fetchBinDetails(binId)
@@ -143,8 +144,8 @@ class _WasteDetailsScreenState extends State<WasteDetailsScreen> {
                     return ListTile(title: Text('Loading...'));
                   }
 
-                  final userData = snapshot.data!['user'] as Map<String, dynamic>?; // User data
-                  final binData = snapshot.data!['bin'] as Map<String, dynamic>?; // Bin data
+                  final userData = snapshot.data!['user'] as Map<String, dynamic>?;
+                  final binData = snapshot.data!['bin'] as Map<String, dynamic>?;
 
                   if (userData == null || binData == null) {
                     return ListTile(title: Text('Error loading user or bin data.'));
@@ -163,7 +164,7 @@ class _WasteDetailsScreenState extends State<WasteDetailsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Bin Type: $binType\nWeight: $binWeight\nRequested on: ${requestedTime.toString()}'),
-                          if (_currentLocation != null) // Display location if available
+                          if (_currentLocation != null)
                             Text('Current Location: Lat: ${_currentLocation!.latitude}, Long: ${_currentLocation!.longitude}'),
                         ],
                       ),
