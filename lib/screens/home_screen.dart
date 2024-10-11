@@ -137,7 +137,7 @@ class _AdminHomeScreenState extends State<HomeScreen> {
             if (schedule != null) {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => RouteScheduleSelection()),
+                MaterialPageRoute(builder: (context) => ScheduleListScreen()),
               );
             } else {
               ScaffoldMessenger.of(context).showSnackBar(

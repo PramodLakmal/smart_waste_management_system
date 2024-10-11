@@ -1,111 +1,104 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:collection/collection.dart'; // Add this for grouping
-import 'package:intl/intl.dart'; // Add this for date formatting
+import 'package:intl/intl.dart';
 
 class WasteSummaryScreen extends StatelessWidget {
   final String routeId;
 
-  WasteSummaryScreen({required this.routeId, required List<Object> schedules});
+  const WasteSummaryScreen({
+    Key? key,
+    required this.routeId, required List<Object> schedules,
+  }) : super(key: key);
 
-  // Fetch waste summary along with collector details and vehicle number
-  Future<List<Map<String, dynamic>>> _fetchWasteSummary() async {
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+  // Fetch waste entries from Firestore for the specified route
+  Future<List<Map<String, dynamic>>> _fetchWasteEntries() async {
+    QuerySnapshot snapshot = await FirebaseFirestore.instance
         .collection('waste_entries')
         .where('routeId', isEqualTo: routeId)
         .get();
 
-    return querySnapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+    return snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+  }
+
+  // Group waste entries by waste collector and date
+  Map<String, Map<String, double>> _groupWasteByCollectorAndDate(List<Map<String, dynamic>> wasteEntries) {
+    Map<String, Map<String, double>> groupedData = {};
+
+    for (var entry in wasteEntries) {
+      String collector = entry['wasteCollector'] ?? 'Unknown';
+      Timestamp timestamp = entry['timestamp'] ?? Timestamp.now();
+      DateTime date = timestamp.toDate();
+      String formattedDate = DateFormat('yyyy-MM-dd').format(date);
+
+      double weight = (entry['wasteWeight'] ?? 0.0) as double;
+
+      // Initialize the group if not present
+      if (!groupedData.containsKey(collector)) {
+        groupedData[collector] = {};
+      }
+
+      // Initialize the date if not present
+      if (!groupedData[collector]!.containsKey(formattedDate)) {
+        groupedData[collector]![formattedDate] = 0.0;
+      }
+
+      // Sum up the waste weight
+      groupedData[collector]![formattedDate] = groupedData[collector]![formattedDate]! + weight;
+    }
+
+    return groupedData;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Waste Summary', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        title: Text('Waste Collection Summary - Route: $routeId'),
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _fetchWasteSummary(),
+        future: _fetchWasteEntries(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error loading waste summary'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No waste data found for this route.'));
           }
 
-          final wasteEntries = snapshot.data!;
+          if (snapshot.hasError) {
+            return Center(child: Text('Error fetching data: ${snapshot.error}'));
+          }
 
-          // Group waste entries by collector name and collected date
-          final groupedEntries = groupBy(
-            wasteEntries,
-            (Map<String, dynamic> entry) => entry['wasteCollector'],
-          );
+          final wasteEntries = snapshot.data ?? [];
 
-          final Map<String, Map<String, List<Map<String, dynamic>>>> finalGrouping = {};
+          if (wasteEntries.isEmpty) {
+            return Center(child: Text('No waste entries found for this route.'));
+          }
 
-          groupedEntries.forEach((collector, entries) {
-            // Group by date within each collector
-            final groupedByDate = groupBy(entries, (Map<String, dynamic> entry) {
-              final date = (entry['timestamp'] as Timestamp).toDate(); // Assuming collectedDate is a Timestamp
-              return DateFormat('yyyy-MM-dd').format(date); // Format date as needed
-            });
+          // Group waste entries by collector and date
+          Map<String, Map<String, double>> groupedData = _groupWasteByCollectorAndDate(wasteEntries);
 
-            finalGrouping[collector] = groupedByDate;
-          });
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ListView(
+              children: groupedData.entries.map((collectorEntry) {
+                String collector = collectorEntry.key;
+                Map<String, double> dateEntries = collectorEntry.value;
 
-          return ListView.builder(
-            itemCount: finalGrouping.keys.length,
-            itemBuilder: (context, index) {
-              final collectorName = finalGrouping.keys.elementAt(index);
-              final groupedByDate = finalGrouping[collectorName]!;
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: ExpansionTile(
+                    title: Text('Collector: $collector'),
+                    children: dateEntries.entries.map((dateEntry) {
+                      String date = dateEntry.key;
+                      double totalWeight = dateEntry.value;
 
-              return Card(
-                margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: Colors.teal),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Waste Collector: $collectorName',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(height: 8),
-                      // List each date for this collector
-                      for (var date in groupedByDate.keys) ...[
-                        Text(
-                          'Collected Date: $date',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 8),
-                        // List each entry for this date
-                        for (var entry in groupedByDate[date]!) ...[
-                          Text(
-                            'Vehicle Number: ${entry['vehicleNumber']}',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          Text(
-                            'Waste Type: ${entry['wasteType']}',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          Text(
-                            'Waste Weight: ${entry['wasteWeight']} kg',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          SizedBox(height: 8),
-                        ],
-                      ],
-                    ],
+                      return ListTile(
+                        title: Text('Date: $date'),
+                        subtitle: Text('Total Waste Collected: ${totalWeight.toStringAsFixed(2)} kg'),
+                      );
+                    }).toList(),
                   ),
-                ),
-              );
-            },
+                );
+              }).toList(),
+            ),
           );
         },
       ),
