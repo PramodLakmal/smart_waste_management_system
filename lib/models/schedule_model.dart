@@ -8,8 +8,11 @@ class Schedule {
   DateTime startTime;
   DateTime endTime;
   String status; // 'pending', 'completed'
-   List<String> userIds; // Add this field for user IDs
-  
+  List<String> userIds; // Add this field for user IDs
+  final List<String> bins;// Add this field for bin IDs
+  final String wasteCollectorId; // Add wasteCollectorId field
+  bool isScheduled; // Add this field for scheduled status
+
   Schedule({
     this.id,
     required this.city,
@@ -18,7 +21,10 @@ class Schedule {
     required this.startTime,
     required this.endTime,
     this.status = 'pending',
-     this.userIds = const [], // Initialize an empty list
+    this.userIds = const [], // Initialize an empty list
+    this.bins = const [], // Initialize an empty list
+    required this.wasteCollectorId, // Initialize wasteCollectorId
+    this.isScheduled = false, // Default to false
   });
 
   factory Schedule.fromFirestore(DocumentSnapshot doc) {
@@ -32,6 +38,9 @@ class Schedule {
       endTime: (data['endTime'] as Timestamp).toDate(),
       status: data['status'] ?? 'pending',
       userIds: List<String>.from(data['userIds'] ?? []), // Handle the userIds field
+      bins: List<String>.from(data['bins'] ?? []), // Handle the bins field
+      wasteCollectorId: data['wasteCollectorId'], // Handle the wasteCollectorId field
+      isScheduled: data['isScheduled'] ?? false, // Handle the isScheduled field
     );
   }
 
@@ -43,7 +52,10 @@ class Schedule {
       'startTime': Timestamp.fromDate(startTime),
       'endTime': Timestamp.fromDate(endTime),
       'status': status,
-       'userIds': userIds, 
+      'userIds': userIds,
+      'bins': bins, // Include bins in the map
+      'wasteCollectorId': wasteCollectorId, // Include wasteCollectorId in the map
+      'isScheduled': isScheduled, // Include isScheduled in the map
     };
   }
 }

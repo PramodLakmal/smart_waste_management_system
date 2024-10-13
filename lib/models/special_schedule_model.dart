@@ -9,6 +9,7 @@ class SpecialSchedule {
   String status; // 'pending', 'completed'
   String vehicleNumber; // Added vehicleNumber
   String wasteCollector; // Added wasteCollector
+  String wasteCollectorId; // Added wasteCollectorId
   List<WasteType> wasteTypes;
 
   SpecialSchedule({
@@ -20,6 +21,7 @@ class SpecialSchedule {
     required this.status,
     required this.vehicleNumber, // Added vehicleNumber
     required this.wasteCollector, // Added wasteCollector
+    required this.wasteCollectorId, // Added wasteCollectorId
     required this.wasteTypes,
   });
 
@@ -34,6 +36,7 @@ class SpecialSchedule {
       status: data['status'],
       vehicleNumber: data['vehicleNumber'], // Added vehicleNumber
       wasteCollector: data['wasteCollector'], // Added wasteCollector
+      wasteCollectorId: data['wasteCollectorId'], // Added wasteCollectorId
       wasteTypes: (data['wasteTypes'] as List).map((w) => WasteType.fromMap(w)).toList(),
     );
   }
@@ -47,6 +50,7 @@ class SpecialSchedule {
       'status': status,
       'vehicleNumber': vehicleNumber, // Added vehicleNumber
       'wasteCollector': wasteCollector, // Added wasteCollector
+      wasteCollectorId: wasteCollectorId, // Added wasteCollectorId
       'wasteTypes': wasteTypes.map((w) => w.toMap()).toList(),
     };
   }

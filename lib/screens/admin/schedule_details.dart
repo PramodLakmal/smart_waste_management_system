@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Import for formatting dates and times
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import for Firestore
+import 'package:smart_waste_management_system/screens/admin/update_schedule.dart';
 import '../../models/schedule_model.dart';
 import 'create_schedule.dart'; // Import to navigate to the create schedule page for editing
 
@@ -121,7 +122,7 @@ class ScheduleDetailsPage extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => CreateSchedulePage(schedule: schedule),
+                                builder: (context) => UpdateSchedulePage(schedule: schedule),
                               ),
                             );
                           },

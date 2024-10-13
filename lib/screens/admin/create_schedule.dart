@@ -22,8 +22,12 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
   late TimeOfDay _endTime;
 
   String? _selectedCity;
+  String? _selectedCollector; // Store the selected waste collector
   List<String> _cities = [];
   List<String> _userIdsFromCity = [];
+  List<String> _binIdsFromCity = []; // List to store bin IDs
+  List<String> _wasteRequestIds = []; // List to store waste collection request IDs
+  List<String> _collectors = []; // List to store waste collector names
 
   @override
   void initState() {
@@ -45,6 +49,7 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
       _endTime = TimeOfDay.now();
     }
     _fetchCities();
+    _fetchCollectors(); // Fetch waste collectors when initializing
   }
 
   // Fetch unique cities from 'users' collection
@@ -57,7 +62,25 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
     });
   }
 
-  // Fetch users from selected city and check if they've requested waste collection
+  // Fetch waste collectors from the 'users' collection
+  Future<void> _fetchCollectors() async {
+    QuerySnapshot collectorsSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('role', isEqualTo: 'wasteCollector')
+        .get();
+
+    List<String> collectorNames = [];
+
+    for (var doc in collectorsSnapshot.docs) {
+      collectorNames.add(doc['name']); // Add collector name to the list
+    }
+
+    setState(() {
+      _collectors = collectorNames; // Update state with collector names
+    });
+  }
+
+  // Fetch users and bin IDs from the selected city with pending waste collection requests where `isScheduled` is false
   Future<void> _fetchUsersFromCity() async {
     QuerySnapshot usersSnapshot = await FirebaseFirestore.instance
         .collection('users')
@@ -65,29 +88,65 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
         .get();
 
     List<String> userIds = [];
+    List<String> binIds = []; // List to hold bin IDs
+    List<String> wasteRequestIds = []; // List to hold waste collection request IDs
+
     for (var doc in usersSnapshot.docs) {
       String userId = doc['uid'];
 
-      // Check if the user has a pending waste collection request
+      // Check if the user has a pending waste collection request with `isScheduled = false`
       QuerySnapshot requestsSnapshot = await FirebaseFirestore.instance
           .collection('wasteCollectionRequests')
           .where('userId', isEqualTo: userId)
           .where('isCollected', isEqualTo: false) // Check for uncollected requests
+          .where('isScheduled', isEqualTo: false) // Check if the request is not scheduled
           .get();
 
       if (requestsSnapshot.docs.isNotEmpty) {
         userIds.add(userId);
+        // Add binId and waste request IDs from the wasteCollectionRequests
+        for (var request in requestsSnapshot.docs) {
+          binIds.add(request['binId']); // Collect binId
+          wasteRequestIds.add(request.id); // Store the request ID to update `isScheduled` later
+        }
       }
     }
 
     setState(() {
       _userIdsFromCity = userIds;
+      _binIdsFromCity = binIds; // Store bin IDs
+      _wasteRequestIds = wasteRequestIds; // Store request IDs
     });
+  }
+
+  // After creating/updating a schedule, set `isScheduled = true` for those requests
+  Future<void> _markRequestsAsScheduled() async {
+    WriteBatch batch = FirebaseFirestore.instance.batch();
+
+    for (String requestId in _wasteRequestIds) {
+      DocumentReference requestRef =
+          FirebaseFirestore.instance.collection('wasteCollectionRequests').doc(requestId);
+
+      // Update `isScheduled` to true for each request
+      batch.update(requestRef, {'isScheduled': true});
+    }
+
+    await batch.commit(); // Commit batch update
   }
 
   Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
-      await _fetchUsersFromCity(); // Fetch users before submission
+      // Creating a new schedule, so fetch users and bin IDs before submission
+      await _fetchUsersFromCity();
+
+      // Check if there are no pending waste collection requests
+      if (_userIdsFromCity.isEmpty) {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('There are no requests for scheduling in this city.')),
+        );
+        return; // Prevent form submission
+      }
 
       DateTime startDateTime = DateTime(
         _startDate.year,
@@ -104,32 +163,47 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
         _endTime.minute,
       );
 
+      // Find the user ID for the selected waste collector
+      String wasteCollectorId = await _fetchWasteCollectorId(_selectedCollector!); // Get collector ID
+
       final schedule = Schedule(
-        id: widget.schedule?.id,
         city: _selectedCity!,
         vehicleNumber: _vehicleController.text,
-        wasteCollector: _collectorController.text,
+        wasteCollector: _selectedCollector!,
+        wasteCollectorId: wasteCollectorId, // Use the collector ID
         startTime: startDateTime,
         endTime: endDateTime,
+        userIds: _userIdsFromCity, // Keep the existing userIds when updating
+        bins: _binIdsFromCity, // Save the collected bin IDs
       );
 
       final scheduleData = schedule.toMap();
-      scheduleData['userIds'] = _userIdsFromCity; // Add user IDs to the schedule
 
-      if (widget.schedule == null) {
-        // Create new schedule
-        await FirebaseFirestore.instance.collection('schedules').add(scheduleData);
-      } else {
-        // Update existing schedule
-        await FirebaseFirestore.instance
-            .collection('schedules')
-            .doc(widget.schedule!.id)
-            .update(scheduleData);
-      }
+      // Create new schedule
+      await FirebaseFirestore.instance.collection('schedules').add(scheduleData);
+
+      // Mark waste collection requests as scheduled
+      await _markRequestsAsScheduled();
 
       Navigator.pop(context);
     }
   }
+
+  // Method to fetch the waste collector ID from the collectors' list
+  Future<String> _fetchWasteCollectorId(String collectorName) async {
+    QuerySnapshot collectorsSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('name', isEqualTo: collectorName)
+        .get();
+
+    if (collectorsSnapshot.docs.isNotEmpty) {
+      return collectorsSnapshot.docs.first.id; // Return the ID of the first matching collector
+    }
+
+    throw Exception('Waste collector not found');
+  }
+
+
 
   // Method for picking the date
   Future<void> _pickDate({required bool isStartDate}) async {
@@ -219,41 +293,37 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
                 
                 _textField('Vehicle Number:', _vehicleController),
                 const SizedBox(height: 8),
-                _textField('Waste Collector:', _collectorController),
-                const SizedBox(height: 16),
-                
-                _dateTimeRow('Start Time:', _startDate, _startTime, () => _pickDate(isStartDate: true), () => _pickTime(isStartTime: true)),
-                const SizedBox(height: 8),
-                
-                _dateTimeRow('End Time:', _endDate, _endTime, () => _pickDate(isStartDate: false), () => _pickTime(isStartTime: false)),
-                const SizedBox(height: 24),
 
-                // Action Buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: _submit,
-                      icon: Icon(widget.schedule == null ? Icons.add : Icons.edit),
-                      label: Text(widget.schedule == null ? 'Create Schedule' : 'Update Schedule'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 51, 126, 201),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey,
-                    ),
-                    child: const Text('Back'),
+                // Waste Collector Dropdown
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'Waste Collector',
+                    border: OutlineInputBorder(),
+                    filled: true,
+                    fillColor: Colors.grey[200],
                   ),
+                  value: _selectedCollector,
+                  items: _collectors
+                      .map((collector) => DropdownMenuItem(value: collector, child: Text(collector)))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedCollector = value; // Update selected waste collector
+                      _collectorController.text = value ?? ''; // Set text field as well
+                    });
+                  },
+                  validator: (value) => value == null ? 'Please select a waste collector' : null,
+                ),
+                const SizedBox(height: 16),
+
+                _dateTimeRow('Start Time:', _startDate, _startTime, isStart: true),
+                const SizedBox(height: 16),
+                _dateTimeRow('End Time:', _endDate, _endTime, isStart: false),
+                const SizedBox(height: 16),
+
+                ElevatedButton(
+                  onPressed: _submit,
+                  child: Text(widget.schedule == null ? 'Create Schedule' : 'Update Schedule'),
                 ),
               ],
             ),
@@ -264,50 +334,30 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
   }
 
   Widget _textField(String label, TextEditingController controller) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        const SizedBox(height: 4),
-        TextFormField(
-          controller: controller,
-          decoration: InputDecoration(
-            border: OutlineInputBorder(),
-            filled: true,
-            fillColor: Colors.grey[200],
-          ),
-          validator: (value) => value!.isEmpty ? 'Enter $label' : null,
-        ),
-      ],
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(),
+        filled: true,
+        fillColor: Colors.grey[200],
+      ),
+      validator: (value) => value!.isEmpty ? 'Please enter $label' : null,
     );
   }
 
-  Widget _dateTimeRow(String label, DateTime date, TimeOfDay time, VoidCallback onPickDate, VoidCallback onPickTime) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _dateTimeRow(String label, DateTime date, TimeOfDay time, {required bool isStart}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        Text(label),
+        TextButton(
+          onPressed: () => _pickDate(isStartDate: isStart),
+          child: Text(DateFormat('yyyy-MM-dd').format(date)),
         ),
-        const SizedBox(height: 4),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Date: ${DateFormat('yyyy-MM-dd').format(date)}'),
-            ElevatedButton(
-              onPressed: onPickDate,
-              child: Text('Select Date'),
-            ),
-            Text('Time: ${time.format(context)}'),
-            ElevatedButton(
-              onPressed: onPickTime,
-              child: Text('Select Time'),
-            ),
-          ],
+        TextButton(
+          onPressed: () => _pickTime(isStartTime: isStart),
+          child: Text(time.format(context)),
         ),
       ],
     );
