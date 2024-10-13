@@ -105,12 +105,12 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
 
   Widget _buildInfoCard(String title, String value, IconData icon) {
     return Card(
-      elevation: 2,
+      elevation: 5,
       child: Padding(
         padding: EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(icon, color: Colors.blue, size: 24),
+            Icon(icon, color: Colors.green, size: 24),
             SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -143,9 +143,14 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.green[50],
       appBar: AppBar(
-        title: Text('Create Special Schedule'),
-        elevation: 0,
+        title: Text('Create Special Schedule',
+        style: TextStyle(
+                color: const Color.fromARGB(221, 255, 255, 255), fontWeight: FontWeight.bold)
+        ),
+        backgroundColor: Colors.green[800],
+        elevation: 5,
       ),
       body: SingleChildScrollView(
         child: SafeArea(
@@ -174,7 +179,7 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.delete_outline, color: Colors.blue),
+                              Icon(Icons.delete_outline, color: Colors.green),
                               SizedBox(width: 8),
                               Text(
                                 'Waste Types',
@@ -258,7 +263,7 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
                     onPressed: _isLoading ? null : _createSpecialSchedule,
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.blue,
+                      backgroundColor: Colors.green,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -268,11 +273,10 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
                         : Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.schedule),
+                              Icon(Icons.schedule, color: Colors.white),
                               SizedBox(width: 8),
-                              Text(
-                                'Create Schedule',
-                                style: TextStyle(fontSize: 16),
+                              Text('Create Schedule',
+                                style: TextStyle(fontSize: 16, color: const Color.fromARGB(221, 255, 255, 255), fontWeight: FontWeight.bold)
                               ),
                             ],
                           ),
