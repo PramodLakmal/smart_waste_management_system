@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:smart_waste_management_system/screens/user/payment.dart';
 import '../user/special_waste_collection_request_screen.dart';
 import '../user/view_my_requests_screen.dart';
 import '../profile/profile_screen.dart';
@@ -37,7 +38,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
       appBar: AppBar(
         title: Text('Waste Management'),
         backgroundColor: Colors.green,
-        actions: kIsWeb ? _buildWebNavBar() : null,
+        actions: kIsWeb ? _buildWebNavBar() : [],
       ),
       body: _screens[_currentIndex],
       bottomNavigationBar: !kIsWeb
@@ -92,62 +93,61 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   }
 
   Widget _buildHome() {
-  return SingleChildScrollView(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CarouselSlider(
-          options: CarouselOptions(
-            height: 200.0,
-            autoPlay: true,
-            enlargeCenterPage: true,
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CarouselSlider(
+            options: CarouselOptions(
+              height: 200.0,
+              autoPlay: true,
+              enlargeCenterPage: true,
+            ),
+            items: carouselImages.map((imageUrl) {
+              return Builder(
+                builder: (BuildContext context) {
+                  return Container(
+                    width: MediaQuery.of(context).size.width,
+                    margin: EdgeInsets.symmetric(horizontal: 5.0),
+                    child: Image.asset(imageUrl, fit: BoxFit.cover),
+                  );
+                },
+              );
+            }).toList(),
           ),
-          items: carouselImages.map((imageUrl) {
-            return Builder(
-              builder: (BuildContext context) {
-                return Container(
-                  width: MediaQuery.of(context).size.width,
-                  margin: EdgeInsets.symmetric(horizontal: 5.0),
-                  child: Image.asset(imageUrl, fit: BoxFit.cover),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'My Bins',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 16),
+                _buildBinsList(),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        SpecialWasteRequestScreen(), // Navigate to the special request screen
+                  ),
                 );
               },
-            );
-          }).toList(),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'My Bins',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 16),
-              _buildBinsList(),
-            ],
+              child: Text('Special Waste Collection Request'),
+            ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      SpecialWasteRequestScreen(), // Navigate to the special request screen
-                ),
-              );
-            },
-            child: Text('Special Waste Collection Request'),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
+        ],
+      ),
+    );
+  }
 
   Widget _buildBinsList() {
     return StreamBuilder<QuerySnapshot>(
