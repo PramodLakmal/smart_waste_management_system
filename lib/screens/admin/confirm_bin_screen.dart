@@ -82,60 +82,68 @@ class _ConfirmBinScreenState extends State<ConfirmBinScreen> {
                   final user = userSnapshot.data!;
                   String userName = user['name'] ?? 'Unknown';
                   String userEmail = user['email'] ?? 'Unknown';
-                  String userAddress = '${user['address']}, ${user['city']}}';
+                  String userAddress = '${user['address']}, ${user['city']}';
 
                   return Card(
-                    margin: EdgeInsets.all(10),
+                    margin: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
                     child: Padding(
-                      padding: const EdgeInsets.all(10.0),
+                      padding: const EdgeInsets.all(20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Display bin image if available, otherwise a placeholder
-                          bin['imageUrl'] != null
-                              ? Image.network(
-                                  bin['imageUrl'],
-                                  height: 100,
-                                  width: 100,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Icon(Icons.image_not_supported); // Fallback icon if image doesn't load
-                                  },
-                                )
-                              : Icon(Icons.delete_outline),
-                          
-                          SizedBox(height: 10),
+                          // Bin details
+                          Text(
+                            bin['nickname'],
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(height: 8),
+                          Text('Type: ${bin['type']}', style: TextStyle(fontSize: 16)),
+                          SizedBox(height: 4),
+                          Text('Weight: ${bin['weight']} kg', style: TextStyle(fontSize: 16)),
+                          SizedBox(height: 4),
+                          Text('Description: ${bin['description']}', style: TextStyle(fontSize: 16)),
+                          Divider(height: 30, thickness: 1),
 
-                          // Display bin details
-                          Text(bin['nickname'], style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                          Text('Type: ${bin['type']}'),
-                          Text('Weight: ${bin['weight']} kg'),
-                          Text('Description: ${bin['description']}'),
-                          Divider(),
+                          // User information
+                          Text('User Information', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                          SizedBox(height: 8),
+                          Text('Name: $userName', style: TextStyle(fontSize: 16)),
+                          SizedBox(height: 4),
+                          Text('Email: $userEmail', style: TextStyle(fontSize: 16)),
+                          SizedBox(height: 4),
+                          Text('Address: $userAddress', style: TextStyle(fontSize: 16)),
 
-                          // Display user information
-                          Text('User: $userName'),
-                          Text('Email: $userEmail'),
-                          Text('Address: $userAddress'),
-
-                          // Confirm and Delete buttons
+                          // Action buttons
+                          SizedBox(height: 20),
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               if (!showConfirmed)
-                                Flexible( // Wrap the Confirm button in Flexible
+                                Expanded(
                                   child: ElevatedButton(
                                     onPressed: () => _confirmBin(bin.id),
                                     child: Text('Confirm'),
+                                    style: ElevatedButton.styleFrom(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               SizedBox(width: 10),
-                              Flexible( // Wrap the Delete button in Flexible
+                              Expanded(
                                 child: ElevatedButton(
                                   onPressed: () => _deleteBin(bin.id),
                                   child: Text('Delete'),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red, // Red color for delete button
+                                    backgroundColor: Colors.red,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
                                   ),
                                 ),
                               ),
