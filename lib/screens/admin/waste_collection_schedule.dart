@@ -292,8 +292,6 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
                 SizedBox(height: 8),
                 _buildInfoRow(Icons.access_time, getDuration(schedule)),
                 SizedBox(height: 4),
-                _buildInfoRow(Icons.local_shipping, schedule.vehicleNumber),
-                SizedBox(height: 4),
                 _buildInfoRow(Icons.person_outline, schedule.wasteCollector),
                 SizedBox(height: 4),
                 _buildInfoRow(

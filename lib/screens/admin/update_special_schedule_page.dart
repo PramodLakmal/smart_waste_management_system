@@ -25,7 +25,6 @@ class _UpdateSpecialSchedulePageState extends State<UpdateSpecialSchedulePage> {
   void initState() {
     super.initState();
     // Initialize with current values
-    _vehicleController.text = widget.specialSchedule.vehicleNumber;
     _selectedCollector = widget.specialSchedule.wasteCollector;
     _selectedCollectorId = widget.specialSchedule.wasteCollectorId;
     // Fetch the collectors
@@ -63,7 +62,6 @@ class _UpdateSpecialSchedulePageState extends State<UpdateSpecialSchedulePage> {
           .collection('specialschedule')
           .doc(widget.specialSchedule.id)
           .update({
-        'vehicleNumber': _vehicleController.text,
         'wasteCollector': _selectedCollector, // Save selected collector's name
         'wasteCollectorId': _selectedCollectorId, // Save selected collector's ID
       });
@@ -224,20 +222,6 @@ class _UpdateSpecialSchedulePageState extends State<UpdateSpecialSchedulePage> {
                             ),
                           ),
                           SizedBox(height: 16),
-                          TextFormField(
-                            controller: _vehicleController,
-                            decoration: InputDecoration(
-                              labelText: 'Vehicle Number',
-                              prefixIcon: Icon(Icons.local_shipping),
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (value) {
-                              if (value?.isEmpty ?? true) {
-                                return 'Please enter vehicle number';
-                              }
-                              return null;
-                            },
-                          ),
                         ],
                       ),
                     ),

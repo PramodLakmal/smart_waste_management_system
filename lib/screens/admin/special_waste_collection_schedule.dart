@@ -167,12 +167,6 @@ class SpecialWasteCollectionSchedule extends StatelessWidget {
               ),
               SizedBox(height: 8),
               _buildInfoRow(
-                Icons.local_shipping,
-                'Vehicle',
-                schedule.vehicleNumber,
-              ),
-              SizedBox(height: 8),
-              _buildInfoRow(
                 Icons.person,
                 'Collector',
                 schedule.wasteCollector,
