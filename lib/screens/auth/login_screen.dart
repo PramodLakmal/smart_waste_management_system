@@ -14,180 +14,149 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
-      backgroundColor: Colors.grey[100], // Light background color
-      appBar: AppBar(
-        title: Text(
-          'Login',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        backgroundColor: theme.primaryColor,
-        elevation: 0,
-      ),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          double screenWidth = constraints.maxWidth;
-          double formWidth = screenWidth > 600 ? 500 : double.infinity;
-
-          return Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: formWidth),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome Back',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: theme.primaryColorDark,
+          return Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF2E7D32),  // Dark Green
+                  Color(0xFF4CAF50),  // Green
+                  Color(0xFF81C784),  // Light Green
+                ],
+              ),
+            ),
+            child: Center(
+              child: SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: 400),
+                  child: Padding(
+                    padding: EdgeInsets.all(24.0),
+                    child: Card(
+                      elevation: 8,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                    ),
-                    SizedBox(height: 24),
-
-                    // Display error message if exists
-                    if (_errorMessage != null) ...[
-                      Container(
-                        padding: EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.red[100],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
+                      child: Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Icon(Icons.error, color: Colors.red),
-                            SizedBox(width: 8),
-                            Expanded(
+                            Icon(
+                              Icons.eco,
+                              size: 64,
+                              color: Color(0xFF2E7D32),
+                            ),
+                            SizedBox(height: 24),
+                            Text(
+                              'Smart Waste',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF2E7D32),
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Management System',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Color(0xFF4CAF50),
+                              ),
+                            ),
+                            SizedBox(height: 32),
+                            if (_errorMessage != null) ...[
+                              Container(
+                                padding: EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.red[100],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  _errorMessage!,
+                                  style: TextStyle(color: Colors.red),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                              SizedBox(height: 16),
+                            ],
+                            TextFormField(
+                              controller: _emailController,
+                              decoration: InputDecoration(
+                                hintText: 'Email',
+                                prefixIcon: Icon(Icons.email, color: Color(0xFF4CAF50)),
+                                filled: true,
+                                fillColor: Colors.grey[200],
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 16),
+                            TextFormField(
+                              controller: _passwordController,
+                              obscureText: true,
+                              decoration: InputDecoration(
+                                hintText: 'Password',
+                                prefixIcon: Icon(Icons.lock, color: Color(0xFF4CAF50)),
+                                filled: true,
+                                fillColor: Colors.grey[200],
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 24),
+                            ElevatedButton(
+                              onPressed: () async {
+                                setState(() => _errorMessage = null);
+                                Map<String, dynamic>? userData = await _authService.signIn(
+                                  _emailController.text,
+                                  _passwordController.text,
+                                );
+                                if (userData != null) {
+                                  String userRole = userData['role'] ?? 'user';
+                                  Navigator.pushReplacementNamed(
+                                    context,
+                                    userRole == 'user' ? '/userHome' : '/home',
+                                  );
+                                } else {
+                                  setState(() => _errorMessage = 'Invalid email or password');
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF2E7D32),
+                                padding: EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
                               child: Text(
-                                _errorMessage!,
-                                style: TextStyle(color: Colors.red),
+                                'Login',
+                                style: TextStyle(fontSize: 18),
+                              ),
+                            ),
+                            SizedBox(height: 16),
+                            TextButton(
+                              onPressed: () => Navigator.pushNamed(context, '/signup'),
+                              child: Text(
+                                "Don't have an account? Sign Up",
+                                style: TextStyle(color: Color(0xFF2E7D32)),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      SizedBox(height: 16),
-                    ],
-
-                    // Email input field
-                    TextFormField(
-                      controller: _emailController,
-                      decoration: InputDecoration(
-                        hintText: 'Email',
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16.0,
-                          horizontal: 16.0,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              BorderSide(color: theme.primaryColorLight),
-                        ),
-                      ),
                     ),
-                    SizedBox(height: 16),
-
-                    // Password input field
-                    TextFormField(
-                      controller: _passwordController,
-                      decoration: InputDecoration(
-                        hintText: 'Password',
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16.0,
-                          horizontal: 16.0,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              BorderSide(color: theme.primaryColorLight),
-                        ),
-                      ),
-                      obscureText: true,
-                    ),
-                    SizedBox(height: 32),
-
-                    // Login button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          setState(() {
-                            _errorMessage = null;
-                          });
-
-                          Map<String, dynamic>? userData =
-                              await _authService.signIn(
-                            _emailController.text,
-                            _passwordController.text,
-                          );
-
-                          if (userData != null) {
-                            // Check the user's role and navigate accordingly
-                            String userRole = userData['role'] ?? 'user';
-
-                            if (userRole == 'user') {
-                              Navigator.pushReplacementNamed(
-                                  context, '/userHome');
-                            } else {
-                              Navigator.pushReplacementNamed(context, '/home');
-                            }
-                          } else {
-                            setState(() {
-                              _errorMessage = 'Invalid email or password';
-                            });
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.primaryColor,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          'Login',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-
-                    // Sign-up link
-                    Center(
-                      child: TextButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/signup');
-                        },
-                        child: Text(
-                          "Don't have an account? Sign Up",
-                          style: TextStyle(
-                              color: theme.primaryColor,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
