@@ -47,6 +47,9 @@ dependencies:
   carousel_slider: ^5.0.0
   collection: ^1.18.0
   flutter_svg: ^2.0.10+1
+  open_file: ^3.5.9
+  pdf: ^3.11.1
+  path_provider: ^2.1.4
   image_picker_web: ^4.0.0
 
 dev_dependencies:

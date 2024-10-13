@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'screens/admin/waste_collector_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
 import 'screens/profile/profile_screen.dart';
@@ -51,6 +52,7 @@ class MyApp extends StatelessWidget {
         '/add-bin': (context) => AddBinScreen(),
         '/requests': (context) => ViewRequestsScreen(),
         '/userHome': (context) => UserHomeScreen(),
+        '/wasteCollectorHome': (context) => WasteCollectorScreen(),
       },
     );
   }
