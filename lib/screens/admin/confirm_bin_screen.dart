@@ -7,150 +7,359 @@ class ConfirmBinScreen extends StatefulWidget {
 }
 
 class _ConfirmBinScreenState extends State<ConfirmBinScreen> {
-  final CollectionReference binsRef = FirebaseFirestore.instance.collection('bins');
-  final CollectionReference usersRef = FirebaseFirestore.instance.collection('users');
+  final CollectionReference binsRef =
+      FirebaseFirestore.instance.collection('bins');
+  final CollectionReference usersRef =
+      FirebaseFirestore.instance.collection('users');
 
-  bool showConfirmed = false; // Toggle between confirmed and unconfirmed bins
+  bool showConfirmed = false;
 
-  // Function to confirm a bin
   Future<void> _confirmBin(String binId) async {
     await binsRef.doc(binId).update({'confirmed': true});
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('Bin confirmed successfully!'),
+      backgroundColor: Color(0xFF4CAF50),
     ));
   }
 
-  // Function to delete a bin
   Future<void> _deleteBin(String binId) async {
     await binsRef.doc(binId).delete();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('Bin deleted successfully!'),
+      backgroundColor: Color(0xFF4CAF50),
     ));
-  }
-
-  // Function to fetch user data by userId
-  Future<DocumentSnapshot> _getUserData(String userId) async {
-    return await usersRef.doc(userId).get();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Confirm Bins'),
-        actions: [
-          IconButton(
-            icon: Icon(showConfirmed ? Icons.visibility_off : Icons.visibility),
-            onPressed: () {
-              setState(() {
-                showConfirmed = !showConfirmed; // Toggle between confirmed and unconfirmed bins
-              });
-            },
-          ),
-        ],
+        title: Text('Manage Bins', style: TextStyle(color: Colors.white)),
+        backgroundColor: Color(0xFF2E7D32),
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: binsRef.where('confirmed', isEqualTo: showConfirmed).snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth > 600) {
+            return _buildWebLayout();
+          } else {
+            return _buildMobileLayout();
           }
-
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(
-              child: Text(showConfirmed ? 'No confirmed bins available.' : 'No bins to confirm.'),
-            );
-          }
-
-          // List of bins to confirm
-          final bins = snapshot.data!.docs;
-
-          return ListView.builder(
-            itemCount: bins.length,
-            itemBuilder: (context, index) {
-              final bin = bins[index];
-              return FutureBuilder<DocumentSnapshot>(
-                future: _getUserData(bin['userId']),
-                builder: (context, userSnapshot) {
-                  if (!userSnapshot.hasData) {
-                    return ListTile(
-                      title: Text('Loading user data...'),
-                    );
-                  }
-
-                  // Extract user data
-                  final user = userSnapshot.data!;
-                  String userName = user['name'] ?? 'Unknown';
-                  String userEmail = user['email'] ?? 'Unknown';
-                  String userAddress = '${user['address']}, ${user['city']}}';
-
-                  return Card(
-                    margin: EdgeInsets.all(10),
-                    child: Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Display bin image if available, otherwise a placeholder
-                          bin['imageUrl'] != null
-                              ? Image.network(
-                                  bin['imageUrl'],
-                                  height: 100,
-                                  width: 100,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Icon(Icons.image_not_supported); // Fallback icon if image doesn't load
-                                  },
-                                )
-                              : Icon(Icons.delete_outline),
-                          
-                          SizedBox(height: 10),
-
-                          // Display bin details
-                          Text(bin['nickname'], style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                          Text('Type: ${bin['type']}'),
-                          Text('Weight: ${bin['weight']} kg'),
-                          Text('Description: ${bin['description']}'),
-                          Divider(),
-
-                          // Display user information
-                          Text('User: $userName'),
-                          Text('Email: $userEmail'),
-                          Text('Address: $userAddress'),
-
-                          // Confirm and Delete buttons
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              if (!showConfirmed)
-                                Flexible( // Wrap the Confirm button in Flexible
-                                  child: ElevatedButton(
-                                    onPressed: () => _confirmBin(bin.id),
-                                    child: Text('Confirm'),
-                                  ),
-                                ),
-                              SizedBox(width: 10),
-                              Flexible( // Wrap the Delete button in Flexible
-                                child: ElevatedButton(
-                                  onPressed: () => _deleteBin(bin.id),
-                                  child: Text('Delete'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red, // Red color for delete button
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-          );
         },
       ),
+    );
+  }
+
+  Widget _buildWebLayout() {
+    return Row(
+      children: [
+        // Sidebar
+        Container(
+          width: 200,
+          color: Color(0xFF4CAF50),
+          child: Column(
+            children: [
+              SizedBox(height: 20),
+              _buildSidebarButton(
+                  'Unconfirmed Bins', Icons.pending_actions, false),
+              _buildSidebarButton('Confirmed Bins', Icons.check_circle, true),
+            ],
+          ),
+        ),
+        // Main content
+        Expanded(
+          child: Container(
+            color: Colors.grey[100],
+            child: _buildBinList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout() {
+    return Column(
+      children: [
+        // Tab bar for mobile
+        Container(
+          color: Color(0xFF4CAF50),
+          child: Row(
+            children: [
+              Expanded(child: _buildMobileTab('Unconfirmed', false)),
+              Expanded(child: _buildMobileTab('Confirmed', true)),
+            ],
+          ),
+        ),
+        // Main content
+        Expanded(
+          child: Container(
+            color: Colors.grey[100],
+            child: _buildBinList(isMobile: true),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSidebarButton(String title, IconData icon, bool confirmed) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: ElevatedButton.icon(
+        icon: Icon(icon,
+            color: showConfirmed == confirmed ? Colors.white : Colors.black54),
+        label: Text(title,
+            style: TextStyle(
+                color: showConfirmed == confirmed
+                    ? Colors.white
+                    : Colors.black54)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: showConfirmed == confirmed
+              ? Color(0xFF2E7D32)
+              : Colors.transparent,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+        ),
+        onPressed: () => setState(() => showConfirmed = confirmed),
+      ),
+    );
+  }
+
+  Widget _buildMobileTab(String title, bool confirmed) {
+    return InkWell(
+      onTap: () => setState(() => showConfirmed = confirmed),
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: showConfirmed == confirmed
+                  ? Colors.white
+                  : Colors.transparent,
+              width: 3,
+            ),
+          ),
+        ),
+        child: Text(
+          title,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: showConfirmed == confirmed ? Colors.white : Colors.black54,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBinList({bool isMobile = false}) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: binsRef.where('confirmed', isEqualTo: showConfirmed).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+              child: CircularProgressIndicator(color: Color(0xFF4CAF50)));
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return Center(
+            child: Text(
+              showConfirmed
+                  ? 'No confirmed bins available.'
+                  : 'No bins to confirm.',
+              style: TextStyle(fontSize: 18, color: Color(0xFF2E7D32)),
+            ),
+          );
+        }
+
+        final bins = snapshot.data!.docs;
+
+        if (isMobile) {
+          return ListView.builder(
+            itemCount: bins.length,
+            itemBuilder: (context, index) => _buildMobileBinCard(bins[index]),
+          );
+        } else {
+          return GridView.builder(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              childAspectRatio: 1.5,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+            ),
+            padding: EdgeInsets.all(16),
+            itemCount: bins.length,
+            itemBuilder: (context, index) => _buildWebBinCard(bins[index]),
+          );
+        }
+      },
+    );
+  }
+
+  Widget _buildWebBinCard(DocumentSnapshot bin) {
+    return FutureBuilder<DocumentSnapshot>(
+      future: usersRef.doc(bin['userId']).get(),
+      builder: (context, userSnapshot) {
+        if (!userSnapshot.hasData) {
+          return Card(child: Center(child: CircularProgressIndicator()));
+        }
+
+        final user = userSnapshot.data!;
+        String userName = user['name'] ?? 'Unknown';
+        String userEmail = user['email'] ?? 'Unknown';
+        String userAddress = '${user['address']}, ${user['city']}';
+
+        return Card(
+          elevation: 4,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  bin['nickname'],
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2E7D32)),
+                ),
+                SizedBox(height: 8),
+                Text('Type: ${bin['type']}'),
+                Text('Weight: ${bin['weight']} kg'),
+                Text('Description: ${bin['description']}'),
+                Divider(height: 16),
+                Text('User: $userName'),
+                Text('Email: $userEmail'),
+                Text('Address: $userAddress', overflow: TextOverflow.ellipsis),
+                Spacer(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    if (!showConfirmed)
+                      ElevatedButton.icon(
+                        icon: Icon(
+                          Icons.check,
+                          color: Colors.white,
+                        ),
+                        label: Text(
+                          'Confirm',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                        onPressed: () => _confirmBin(bin.id),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              Color(0xFF4CAF50), // Button background color
+                        ),
+                      ),
+                    SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      icon: Icon(Icons.delete, color: Colors.white),
+                      label: Text(
+                        'Delete',
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white),
+                      ),
+                      onPressed: () => _deleteBin(bin.id),
+                      style:
+                          ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMobileBinCard(DocumentSnapshot bin) {
+    return FutureBuilder<DocumentSnapshot>(
+      future: usersRef.doc(bin['userId']).get(),
+      builder: (context, userSnapshot) {
+        if (!userSnapshot.hasData) {
+          return Card(child: Center(child: CircularProgressIndicator()));
+        }
+
+        final user = userSnapshot.data!;
+        String userName = user['name'] ?? 'Unknown';
+        String userEmail = user['email'] ?? 'Unknown';
+        String userAddress = '${user['address']}, ${user['city']}';
+
+        return Card(
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          elevation: 4,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  bin['nickname'],
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2E7D32)),
+                ),
+                SizedBox(height: 8),
+                Text('Type: ${bin['type']}'),
+                Text('Weight: ${bin['weight']} kg'),
+                Text('Description: ${bin['description']}'),
+                Divider(height: 16),
+                Text('User: $userName'),
+                Text('Email: $userEmail'),
+                Text('Address: $userAddress'),
+                SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    if (!showConfirmed)
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          icon: Icon(Icons.check, color: Colors.white),
+                          label: Text(
+                            'Confirm',
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white),
+                          ),
+                          onPressed: () => _confirmBin(bin.id),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xFF4CAF50)),
+                        ),
+                      ),
+                    if (!showConfirmed) SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        icon: Icon(Icons.delete, color: Colors.white),
+                        label: Text(
+                          'Delete',
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white),
+                        ),
+                        onPressed: () => _deleteBin(bin.id),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

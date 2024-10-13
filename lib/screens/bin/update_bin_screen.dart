@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:io'; // For File type
-import 'package:image_picker/image_picker.dart'; // For picking images
-import 'package:firebase_storage/firebase_storage.dart'; // For image upload
 
 class EditBinScreen extends StatefulWidget {
-  final DocumentSnapshot binData; // Pass bin data from the profile screen
+  final DocumentSnapshot binData;
 
   EditBinScreen({required this.binData});
 
@@ -19,16 +16,19 @@ class _EditBinScreenState extends State<EditBinScreen> {
   String _nickname = '';
   String _description = '';
   double _weight = 0.0;
-  File? _imageFile;
-  final picker = ImagePicker();
+
+  final List<Map<String, dynamic>> _binTypes = [
+    {'type': 'Electrical Waste', 'icon': Icons.electrical_services},
+    {'type': 'Plastic Waste', 'icon': Icons.local_drink},
+    {'type': 'Organic Waste', 'icon': Icons.eco},
+  ];
 
   @override
   void initState() {
     super.initState();
-    _loadBinData(); // Load existing bin data
+    _loadBinData();
   }
 
-  // Load existing bin data into the form
   void _loadBinData() {
     _nickname = widget.binData['nickname'];
     _selectedBinType = widget.binData['type'];
@@ -36,47 +36,28 @@ class _EditBinScreenState extends State<EditBinScreen> {
     _weight = widget.binData['weight'].toDouble();
   }
 
-  Future<void> _selectImage() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
-    }
-  }
-
   Future<void> _updateBin() async {
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
 
-    // Reference to the bin document in Firestore
     DocumentReference binRef = FirebaseFirestore.instance.collection('bins').doc(widget.binData.id);
 
-    // Upload the image to Firebase Storage if available
-    String? imageUrl = widget.binData['imageUrl'];
-    if (_imageFile != null) {
-      String imagePath = 'bin_images/${binRef.id}.jpg';
-      TaskSnapshot uploadTask = await FirebaseStorage.instance
-          .ref(imagePath)
-          .putFile(_imageFile!);
-      imageUrl = await uploadTask.ref.getDownloadURL();
-    }
-
-    // Update the bin data
     await binRef.update({
       'nickname': _nickname,
       'type': _selectedBinType,
       'description': _description,
       'weight': _weight,
-      'imageUrl': imageUrl,
+      'imageUrl': null,
     });
 
-    // Show success message
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('Bin updated successfully!'),
-    ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Bin updated successfully!'),
+        backgroundColor: Color(0xFF4CAF50),
+      ),
+    );
 
-    Navigator.pop(context); // Navigate back to the previous screen
+    Navigator.pop(context);
   }
 
   @override
@@ -84,120 +65,189 @@ class _EditBinScreenState extends State<EditBinScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Edit Bin'),
+        backgroundColor: Color(0xFF2E7D32),
+        elevation: 0,
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              // Bin Type Dropdown
-              DropdownButtonFormField<String>(
-                value: _selectedBinType,
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedBinType = newValue!;
-                  });
-                },
-                items: ['Electrical Waste', 'Plastic Waste', 'Organic Waste']
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                decoration: InputDecoration(
-                  labelText: 'Select Bin Type',
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please select a bin type';
-                  }
-                  return null;
-                },
-              ),
-
-              SizedBox(height: 16.0),
-
-              // Nickname field
-              TextFormField(
-                initialValue: _nickname,
-                decoration: InputDecoration(labelText: 'Bin Nickname'),
-                onSaved: (value) {
-                  _nickname = value!;
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a nickname for the bin';
-                  }
-                  return null;
-                },
-              ),
-
-              SizedBox(height: 16.0),
-
-              // Weight field
-              TextFormField(
-                initialValue: _weight.toString(),
-                decoration: InputDecoration(labelText: 'Weight (kg)'),
-                keyboardType: TextInputType.number,
-                onSaved: (value) {
-                  _weight = double.tryParse(value!) ?? 0.0;
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the weight of the bin';
-                  }
-                  if (double.tryParse(value) == null) {
-                    return 'Please enter a valid number';
-                  }
-                  return null;
-                },
-              ),
-
-              SizedBox(height: 16.0),
-
-              // Description field (optional)
-              TextFormField(
-                initialValue: _description,
-                decoration: InputDecoration(labelText: 'Description (optional)'),
-                onSaved: (value) {
-                  _description = value ?? '';
-                },
-              ),
-
-              SizedBox(height: 16.0),
-
-              // Image picker
-              ElevatedButton(
-                onPressed: _selectImage,
-                child: Text('Select Bin Image'),
-              ),
-              _imageFile != null
-                  ? Image.file(
-                      _imageFile!,
-                      height: 150,
-                      width: 150,
-                      fit: BoxFit.cover,
-                    )
-                  : widget.binData['imageUrl'] != null
-                      ? Image.network(
-                          widget.binData['imageUrl'],
-                          height: 150,
-                          width: 150,
-                          fit: BoxFit.cover,
-                        )
-                      : SizedBox.shrink(),
-
-              SizedBox(height: 16.0),
-
-              // Submit button
-              ElevatedButton(
-                onPressed: _updateBin,
-                child: Text('Update Bin'),
-              ),
-            ],
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF2E7D32), Color(0xFF81C784)],
           ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: 600),
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildBinTypeSelector(),
+                        SizedBox(height: 24.0),
+                        _buildInputCard(),
+                        SizedBox(height: 24.0),
+                        _buildSubmitButton(),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBinTypeSelector() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Select Bin Type',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 16),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: _binTypes.map((binType) {
+                bool isSelected = _selectedBinType == binType['type'];
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedBinType = binType['type']),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isSelected ? Color(0xFF4CAF50) : Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(
+                        color: isSelected ? Color(0xFF4CAF50) : Colors.grey[300]!,
+                        width: 2,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          binType['icon'],
+                          color: isSelected ? Colors.white : Color(0xFF4CAF50),
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          binType['type'],
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : Colors.black87,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInputCard() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildInputField(
+              label: 'Bin Nickname',
+              initialValue: _nickname,
+              onSaved: (value) => _nickname = value!,
+              validator: (value) =>
+                  value!.isEmpty ? 'Please enter a nickname for the bin' : null,
+            ),
+            SizedBox(height: 16),
+            _buildInputField(
+              label: 'Weight (kg)',
+              initialValue: _weight.toString(),
+              keyboardType: TextInputType.number,
+              onSaved: (value) => _weight = double.tryParse(value!) ?? 0.0,
+              validator: (value) {
+                if (value!.isEmpty) return 'Please enter the weight of the bin';
+                if (double.tryParse(value) == null) return 'Please enter a valid number';
+                return null;
+              },
+            ),
+            SizedBox(height: 16),
+            _buildInputField(
+              label: 'Description (optional)',
+              initialValue: _description,
+              onSaved: (value) => _description = value ?? '',
+              maxLines: 3,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInputField({
+    required String label,
+    required Function(String?) onSaved,
+    String? Function(String?)? validator,
+    TextInputType? keyboardType,
+    int maxLines = 1,
+    String? initialValue,
+  }) {
+    return TextFormField(
+      initialValue: initialValue,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: Color(0xFF2E7D32)),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Color(0xFF4CAF50), width: 2.0),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.grey[300]!, width: 1.0),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        filled: true,
+        fillColor: Colors.grey[100],
+      ),
+      onSaved: onSaved,
+      validator: validator,
+      keyboardType: keyboardType,
+      maxLines: maxLines,
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return ElevatedButton(
+      onPressed: _updateBin,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Color(0xFF2E7D32),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        elevation: 4,
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 16.0),
+        child: Text(
+          'Update Bin',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
     );
