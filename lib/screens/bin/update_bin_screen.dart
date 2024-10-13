@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:io'; // For File type
-import 'package:image_picker/image_picker.dart'; // For picking images
-import 'package:firebase_storage/firebase_storage.dart'; // For image upload
 
 class EditBinScreen extends StatefulWidget {
   final DocumentSnapshot binData; // Pass bin data from the profile screen
@@ -19,8 +16,6 @@ class _EditBinScreenState extends State<EditBinScreen> {
   String _nickname = '';
   String _description = '';
   double _weight = 0.0;
-  File? _imageFile;
-  final picker = ImagePicker();
 
   @override
   void initState() {
@@ -36,15 +31,6 @@ class _EditBinScreenState extends State<EditBinScreen> {
     _weight = widget.binData['weight'].toDouble();
   }
 
-  Future<void> _selectImage() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
-    }
-  }
-
   Future<void> _updateBin() async {
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
@@ -52,15 +38,8 @@ class _EditBinScreenState extends State<EditBinScreen> {
     // Reference to the bin document in Firestore
     DocumentReference binRef = FirebaseFirestore.instance.collection('bins').doc(widget.binData.id);
 
-    // Upload the image to Firebase Storage if available
-    String? imageUrl = widget.binData['imageUrl'];
-    if (_imageFile != null) {
-      String imagePath = 'bin_images/${binRef.id}.jpg';
-      TaskSnapshot uploadTask = await FirebaseStorage.instance
-          .ref(imagePath)
-          .putFile(_imageFile!);
-      imageUrl = await uploadTask.ref.getDownloadURL();
-    }
+    // Set imageUrl to null as we are not dealing with image uploads
+    String? imageUrl = null;
 
     // Update the bin data
     await binRef.update({
@@ -68,7 +47,7 @@ class _EditBinScreenState extends State<EditBinScreen> {
       'type': _selectedBinType,
       'description': _description,
       'weight': _weight,
-      'imageUrl': imageUrl,
+      'imageUrl': imageUrl, // Set as null
     });
 
     // Show success message
@@ -165,29 +144,6 @@ class _EditBinScreenState extends State<EditBinScreen> {
                   _description = value ?? '';
                 },
               ),
-
-              SizedBox(height: 16.0),
-
-              // Image picker
-              ElevatedButton(
-                onPressed: _selectImage,
-                child: Text('Select Bin Image'),
-              ),
-              _imageFile != null
-                  ? Image.file(
-                      _imageFile!,
-                      height: 150,
-                      width: 150,
-                      fit: BoxFit.cover,
-                    )
-                  : widget.binData['imageUrl'] != null
-                      ? Image.network(
-                          widget.binData['imageUrl'],
-                          height: 150,
-                          width: 150,
-                          fit: BoxFit.cover,
-                        )
-                      : SizedBox.shrink(),
 
               SizedBox(height: 16.0),
 

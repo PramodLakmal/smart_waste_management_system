@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:geolocator/geolocator.dart';
 
 class WasteDetailsScreen extends StatefulWidget {
   final String wasteCollectorUid;
@@ -13,7 +12,6 @@ class WasteDetailsScreen extends StatefulWidget {
 
 class _WasteDetailsScreenState extends State<WasteDetailsScreen> {
   bool _showCollected = false;
-  Position? _currentLocation; // Variable to hold the current location
 
   // Fetch waste collection requests assigned to the current collector (grouped by UID)
   Stream<QuerySnapshot> _fetchRequests() {
@@ -68,29 +66,12 @@ class _WasteDetailsScreenState extends State<WasteDetailsScreen> {
     }
   }
 
-  // Method to get current location
-  Future<void> _getCurrentLocation() async {
-    try {
-      // Check and request location permission
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
 
-      // If permission granted, fetch location
-      if (permission == LocationPermission.whileInUse || permission == LocationPermission.always) {
-        _currentLocation = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-        setState(() {}); // Update state to reflect new location
-      }
-    } catch (e) {
-      print('Error fetching location: $e');
-    }
-  }
 
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation(); // Fetch location when the screen is initialized
+    // Fetch location when the screen is initialized
   }
 
   @override
@@ -162,11 +143,7 @@ class _WasteDetailsScreenState extends State<WasteDetailsScreen> {
                       title: Text('User: $userName\nEmail: $userEmail'),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Bin Type: $binType\nWeight: $binWeight\nRequested on: ${requestedTime.toString()}'),
-                          if (_currentLocation != null)
-                            Text('Current Location: Lat: ${_currentLocation!.latitude}, Long: ${_currentLocation!.longitude}'),
-                        ],
+    
                       ),
                       trailing: !_showCollected
                           ? ElevatedButton(
