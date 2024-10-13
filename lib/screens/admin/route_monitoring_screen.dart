@@ -26,7 +26,7 @@ class _BinIdsScreenState extends State<BinIdsScreen> {
       print("binIds is empty!");
       return Stream.empty();
     }
-  
+
     print("Fetching requests for binIds: ${widget.binIds}");
 
     return FirebaseFirestore.instance
@@ -58,9 +58,54 @@ class _BinIdsScreenState extends State<BinIdsScreen> {
     }
   }
 
-  // Method to mark a request as collected
+  // Method to mark a request as collected and store it in 'collectedWastes'
   Future<void> _markAsCollected(String requestId, String binId) async {
     try {
+      // Fetch the waste collection request details
+      DocumentSnapshot requestDoc = await FirebaseFirestore.instance.collection('wasteCollectionRequests').doc(requestId).get();
+      if (!requestDoc.exists) {
+        print('Waste collection request not found.');
+        return;
+      }
+      Map<String, dynamic> requestData = requestDoc.data() as Map<String, dynamic>;
+
+      // Fetch the user details
+      String userId = requestData['userId'];
+      Map<String, dynamic>? userData = await _fetchUserDetails(userId);
+      if (userData == null) {
+        print('User data not found.');
+        return;
+      }
+
+      // Fetch the bin details
+      Map<String, dynamic>? binData = await _fetchBinDetails(binId);
+      if (binData == null) {
+        print('Bin data not found.');
+        return;
+      }
+
+      // Extract necessary fields
+      String collectorId = widget.wasteCollectorId;
+      String collectorName = widget.wasteCollector;
+      String uid = userId;
+      String name = userData['name'] ?? 'Unknown Name';
+      String wasteCollector = collectorName;
+      double weight = binData['weight'] ?? 0.0;
+      String type = binData['type'] ?? 'Unknown Type';
+      String binIdCollected = binId;
+
+      // Save the collected waste data to 'collectedWastes' collection
+      await FirebaseFirestore.instance.collection('collectedWastes').add({
+        'collectorId': collectorId,
+        'uid': uid,
+        'name': name,
+        'wasteCollector': wasteCollector,
+        'weight': weight,
+        'type': type,
+        'binId': binIdCollected,
+        'collectedTime': FieldValue.serverTimestamp(), // Save the collection time
+      });
+
       // Update waste collection request to mark as collected
       await FirebaseFirestore.instance.collection('wasteCollectionRequests').doc(requestId).update({
         'isCollected': true,
@@ -78,7 +123,7 @@ class _BinIdsScreenState extends State<BinIdsScreen> {
       // Show a snackbar confirming the update
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Marked as collected.'),
+          content: Text('Marked as collected and stored in collectedWastes.'),
           backgroundColor: Color(0xFF4CAF50),
         ),
       );
@@ -168,7 +213,7 @@ class _BinIdsScreenState extends State<BinIdsScreen> {
                 elevation: 4,
                 color: Colors.grey[200],
                 child: ExpansionTile(
-                  title: FutureBuilder<Map<String, dynamic>?>(
+                  title: FutureBuilder<Map<String, dynamic>?>( 
                     future: _fetchUserDetails(userId),
                     builder: (context, userSnapshot) {
                       if (!userSnapshot.hasData) {
@@ -190,7 +235,7 @@ class _BinIdsScreenState extends State<BinIdsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          FutureBuilder<Map<String, dynamic>?>(
+                          FutureBuilder<Map<String, dynamic>?>( 
                             future: _fetchUserDetails(userId),
                             builder: (context, userSnapshot) {
                               if (!userSnapshot.hasData) {
@@ -205,7 +250,7 @@ class _BinIdsScreenState extends State<BinIdsScreen> {
                             },
                           ),
                           SizedBox(height: 8),
-                          FutureBuilder<Map<String, dynamic>?>(
+                          FutureBuilder<Map<String, dynamic>?>( 
                             future: _fetchBinDetails(binId),
                             builder: (context, binSnapshot) {
                               if (!binSnapshot.hasData) {
