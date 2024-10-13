@@ -63,7 +63,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   List<Widget> _buildWebNavBar() {
     return [
       _buildWebNavBarItem('Home', 0, Icons.home),
-      _buildWebNavBarItem('Special Requests', 1, Icons.request_page),
+      _buildWebNavBarItem('Collection Requests', 1, Icons.request_page),
       _buildWebNavBarItem('Payments', 2, Icons.payment),
       _buildWebNavBarItem('Profile', 3, Icons.person),
     ];
@@ -112,7 +112,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildCarousel(),
+          if (kIsWeb) _buildWebCarousel() else _buildMobileCarousel(),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -132,7 +132,53 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     );
   }
 
-  Widget _buildCarousel() {
+  Widget _buildWebCarousel() {
+    return Container(
+      height: 400,
+      child: Stack(
+        children: [
+          CarouselSlider(
+            options: CarouselOptions(
+              height: 400.0,
+              autoPlay: true,
+              enlargeCenterPage: true,
+              aspectRatio: 16 / 9,
+              autoPlayCurve: Curves.fastOutSlowIn,
+              enableInfiniteScroll: true,
+              autoPlayAnimationDuration: Duration(milliseconds: 800),
+              viewportFraction: 1.0,
+            ),
+            items: carouselImages.map((imageUrl) {
+              return Builder(
+                builder: (BuildContext context) {
+                  return Container(
+                    width: MediaQuery.of(context).size.width,
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage(imageUrl),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  );
+                },
+              );
+            }).toList(),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.black.withOpacity(0.6), Colors.transparent],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileCarousel() {
     return Container(
       height: 200,
       child: CarouselSlider(
@@ -192,30 +238,79 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           categorizedBins[type]!.add(bin);
         }
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: categorizedBins.entries.map((entry) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Text(
-                    entry.key,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF4CAF50)),
-                  ),
-                ),
-                _buildBinsGrid(entry.value),
-                SizedBox(height: 16),
-              ],
-            );
-          }).toList(),
-        );
+        if (kIsWeb) {
+          return _buildWebCategorizedBinsList(categorizedBins);
+        } else {
+          return _buildMobileCategorizedBinsList(categorizedBins);
+        }
       },
     );
   }
 
- Widget _buildBinCard(Map<String, dynamic> binData) {
+  Widget _buildWebCategorizedBinsList(Map<String, List<QueryDocumentSnapshot>> categorizedBins) {
+    List<Widget> columns = [];
+    List<Widget> currentColumn = [];
+
+    categorizedBins.entries.forEach((entry) {
+      currentColumn.add(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Text(
+                entry.key,
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF4CAF50)),
+              ),
+            ),
+            _buildBinsGrid(entry.value),
+            SizedBox(height: 16),
+          ],
+        ),
+      );
+
+      if (currentColumn.length == 2 || entry.key == categorizedBins.keys.last) {
+        columns.add(
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: currentColumn,
+            ),
+          ),
+        );
+        currentColumn = [];
+      }
+    });
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: columns,
+    );
+  }
+
+  Widget _buildMobileCategorizedBinsList(Map<String, List<QueryDocumentSnapshot>> categorizedBins) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: categorizedBins.entries.map((entry) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Text(
+                entry.key,
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF4CAF50)),
+              ),
+            ),
+            _buildBinsGrid(entry.value),
+            SizedBox(height: 16),
+          ],
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildBinCard(Map<String, dynamic> binData) {
     final filledPercentage = (binData['filledPercentage'] ?? 0) / 100;
     final isFull = filledPercentage >= 0.9;
     final isPending = !(binData['confirmed'] ?? false);
@@ -279,8 +374,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     );
   }
 
-
-Widget _buildStatusChip(bool isFull, bool isPending, bool isCollectionRequested) {
+  Widget _buildStatusChip(bool isFull, bool isPending, bool isCollectionRequested) {
     if (isCollectionRequested) {
       return _buildChip(
         kIsWeb ? 'Collection Requested' : 'Requested',
@@ -319,10 +413,10 @@ Widget _buildBinsGrid(List<QueryDocumentSnapshot> bins) {
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: kIsWeb ? 6 : 2,
+        crossAxisCount: kIsWeb ? 3 : 2,
         crossAxisSpacing: kIsWeb ? 16 : 12,
         mainAxisSpacing: kIsWeb ? 16 : 12,
-        childAspectRatio: kIsWeb ? 0.8 : 0.85,
+        childAspectRatio: kIsWeb ? 0.9 : 0.85,
       ),
       itemCount: bins.length,
       itemBuilder: (context, index) {
@@ -332,8 +426,6 @@ Widget _buildBinsGrid(List<QueryDocumentSnapshot> bins) {
       },
     );
   }
-
-
 
   void _checkAndSendRequest(Map<String, dynamic> binData) {
     if (binData['filledPercentage'] >= 90 &&
