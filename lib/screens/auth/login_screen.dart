@@ -23,9 +23,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFF2E7D32),  // Dark Green
-                  Color(0xFF4CAF50),  // Green
-                  Color(0xFF81C784),  // Light Green
+                  Color(0xFF2E7D32), // Dark Green
+                  Color(0xFF4CAF50), // Green
+                  Color(0xFF81C784), // Light Green
                 ],
               ),
             ),
@@ -90,7 +90,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               controller: _emailController,
                               decoration: InputDecoration(
                                 hintText: 'Email',
-                                prefixIcon: Icon(Icons.email, color: Color(0xFF4CAF50)),
+                                prefixIcon:
+                                    Icon(Icons.email, color: Color(0xFF4CAF50)),
                                 filled: true,
                                 fillColor: Colors.grey[200],
                                 border: OutlineInputBorder(
@@ -105,7 +106,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               obscureText: true,
                               decoration: InputDecoration(
                                 hintText: 'Password',
-                                prefixIcon: Icon(Icons.lock, color: Color(0xFF4CAF50)),
+                                prefixIcon:
+                                    Icon(Icons.lock, color: Color(0xFF4CAF50)),
                                 filled: true,
                                 fillColor: Colors.grey[200],
                                 border: OutlineInputBorder(
@@ -116,53 +118,57 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             SizedBox(height: 24),
                             ElevatedButton(
-  onPressed: () async {
-    setState(() => _errorMessage = null);
-    // Attempt to sign in and fetch user data
-    Map<String, dynamic>? userData = await _authService.signIn(
-      _emailController.text,
-      _passwordController.text,
-    );
-    
-    if (userData != null) {
-      // Get the role from the user data (defaults to 'user' if no role is found)
-      String userRole = userData['role'] ?? 'user';
-      
-      // Determine which home screen to navigate to based on the user role
-      String route;
-      if (userRole == 'user') {
-        route = '/userHome';
-      } else if (userRole == 'admin') {
-        route = '/home';
-      } else if (userRole == 'wasteCollector') {
-        route = '/wasteCollectorHome';
-      } else {
-        // Default fallback, assuming all other cases are treated as normal users
-        route = '/userHome';
-      }
-      
-      // Navigate to the determined route
-      Navigator.pushReplacementNamed(context, route);
-    } else {
-      // If login failed, show an error message
-      setState(() => _errorMessage = 'Invalid email or password');
-    }
-  },
-  style: ElevatedButton.styleFrom(
-    backgroundColor: Color(0xFF2E7D32),
-    padding: EdgeInsets.symmetric(vertical: 16),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
-  ),
-  child: Text(
-    'Login',
-    style: TextStyle(fontSize: 18),
-  ),
-),
+                              onPressed: () async {
+                                setState(() => _errorMessage = null);
+                                // Attempt to sign in and fetch user data
+                                Map<String, dynamic>? userData =
+                                    await _authService.signIn(
+                                  _emailController.text,
+                                  _passwordController.text,
+                                );
+
+                                if (userData != null) {
+                                  // Get the role from the user data (defaults to 'user' if no role is found)
+                                  String userRole = userData['role'] ?? 'user';
+
+                                  // Determine which home screen to navigate to based on the user role
+                                  String route;
+                                  if (userRole == 'user') {
+                                    route = '/userHome';
+                                  } else if (userRole == 'admin') {
+                                    route = '/home';
+                                  } else if (userRole == 'wasteCollector') {
+                                    route = '/wasteCollectorHome';
+                                  } else {
+                                    // Default fallback, assuming all other cases are treated as normal users
+                                    route = '/userHome';
+                                  }
+
+                                  // Navigate to the determined route
+                                  Navigator.pushReplacementNamed(
+                                      context, route);
+                                } else {
+                                  // If login failed, show an error message
+                                  setState(() => _errorMessage =
+                                      'Invalid email or password');
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF2E7D32),
+                                padding: EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: Text(
+                                'Login',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.white),
+                              ),
+                            ),
                             SizedBox(height: 16),
                             TextButton(
-                              onPressed: () => Navigator.pushNamed(context, '/signup'),
+                              onPressed: () =>
+                                  Navigator.pushNamed(context, '/signup'),
                               child: Text(
                                 "Don't have an account? Sign Up",
                                 style: TextStyle(color: Color(0xFF2E7D32)),
