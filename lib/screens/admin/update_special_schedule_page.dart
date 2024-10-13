@@ -1,44 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart'; // Import for formatting dates and times
+import '../../models/special_schedule_model.dart'; // Import your SpecialSchedule model
 
-class CreateSpecialSchedulePage extends StatefulWidget {
-  final String requestId;
-  final String city;
-  final String scheduledDate;
-  final String address;
-  final List wasteTypes;
+class UpdateSpecialSchedulePage extends StatefulWidget {
+  final SpecialSchedule specialSchedule;
 
-  CreateSpecialSchedulePage({
-    required this.requestId,
-    required this.city,
-    required this.scheduledDate,
-    required this.address,
-    required this.wasteTypes,
-  });
+  const UpdateSpecialSchedulePage({Key? key, required this.specialSchedule})
+      : super(key: key);
 
   @override
-  _CreateSpecialSchedulePageState createState() => _CreateSpecialSchedulePageState();
+  _UpdateSpecialSchedulePageState createState() => _UpdateSpecialSchedulePageState();
 }
 
-class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
+class _UpdateSpecialSchedulePageState extends State<UpdateSpecialSchedulePage> {
   final TextEditingController _vehicleController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-  
-  String? _selectedCollector;  // To store the selected collector's name
-  String? _selectedCollectorId;  // To store the selected collector's ID
+
+  String? _selectedCollector; // Store the selected collector's name
+  String? _selectedCollectorId; // Store the selected collector's ID
 
   @override
   void initState() {
     super.initState();
-    // Initially, waste collectors will be fetched from Firestore
+    // Initialize with current values
+    _vehicleController.text = widget.specialSchedule.vehicleNumber;
+    _selectedCollector = widget.specialSchedule.wasteCollector;
+    _selectedCollectorId = widget.specialSchedule.wasteCollectorId;
+    // Fetch the collectors
     _fetchWasteCollectors();
   }
 
   // List of waste collectors to populate the dropdown
   List<Map<String, dynamic>> _wasteCollectors = [];
 
-  // Function to fetch waste collectors from Firestore
+  // Fetch waste collectors from Firestore
   Future<void> _fetchWasteCollectors() async {
     QuerySnapshot snapshot = await FirebaseFirestore.instance
         .collection('users')
@@ -55,46 +52,35 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
     });
   }
 
-  Future<void> _createSpecialSchedule() async {
+  // Update special schedule in Firestore
+  Future<void> _updateSpecialSchedule() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
+
     try {
-      await FirebaseFirestore.instance.collection('specialschedule').add({
-        'requestId': widget.requestId,
-        'city': widget.city,
-        'scheduledDate': widget.scheduledDate,
-        'address': widget.address,
-        'wasteTypes': widget.wasteTypes,
-        'wasteCollector': _selectedCollector, // Save the selected collector's name
-        'wasteCollectorId': _selectedCollectorId, // Save the selected collector's ID
+      await FirebaseFirestore.instance
+          .collection('specialschedule')
+          .doc(widget.specialSchedule.id)
+          .update({
         'vehicleNumber': _vehicleController.text,
-        'status': 'schedule created',
-        'createdAt': DateTime.now(),
+        'wasteCollector': _selectedCollector, // Save selected collector's name
+        'wasteCollectorId': _selectedCollectorId, // Save selected collector's ID
       });
 
-      // Update the status in the specialWasteRequests collection
-      await FirebaseFirestore.instance
-          .collection('specialWasteRequests')
-          .doc(widget.requestId)
-          .update({'status': 'schedule created'});
-
-      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Schedule created successfully'),
+          content: Text('Schedule updated successfully'),
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
         ),
       );
 
-      // Navigate back after schedule creation
-      Navigator.pop(context);
+      Navigator.pop(context); // Go back after successful update
     } catch (e) {
-      // Show error message in case of failure
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error creating schedule. Please try again.'),
+          content: Text('Error updating schedule: $e'),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ),
@@ -119,18 +105,12 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
                   SizedBox(height: 4),
                   Text(
                     value,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -145,7 +125,7 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Create Special Schedule'),
+        title: Text('Update Special Schedule'),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -158,12 +138,12 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Request Information Section
-                  _buildInfoCard('City', widget.city, Icons.location_city),
+                  _buildInfoCard('City', widget.specialSchedule.city, Icons.location_city),
                   SizedBox(height: 12),
-                  _buildInfoCard('Date', widget.scheduledDate, Icons.calendar_today),
+                  _buildInfoCard('Date', DateFormat('yyyy-MM-dd').format(widget.specialSchedule.scheduledDate), Icons.calendar_today),
                   SizedBox(height: 12),
-                  _buildInfoCard('Address', widget.address, Icons.location_on),
-                  
+                  _buildInfoCard('Address', widget.specialSchedule.address, Icons.location_on),
+
                   // Waste Types Section
                   Card(
                     elevation: 2,
@@ -179,25 +159,22 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
                               SizedBox(width: 8),
                               Text(
                                 'Waste Types',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
                           Divider(height: 24),
-                          ...widget.wasteTypes.map((waste) => Padding(
+                          ...widget.specialSchedule.wasteTypes.map((waste) => Padding(
                             padding: EdgeInsets.symmetric(vertical: 8),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  waste['type'],
+                                  waste.type, // Updated from `waste['type']`
                                   style: TextStyle(fontSize: 16),
                                 ),
                                 Text(
-                                  '${waste['weight']} kg',
+                                  '${waste.weight} kg', // Updated from `waste['weight']`
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -270,7 +247,7 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
 
                   // Submit Button
                   ElevatedButton(
-                    onPressed: _isLoading ? null : _createSpecialSchedule,
+                    onPressed: _isLoading ? null : _updateSpecialSchedule,
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 16),
                       backgroundColor: Colors.blue,
@@ -283,10 +260,10 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
                         : Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.schedule),
+                              Icon(Icons.update),
                               SizedBox(width: 8),
                               Text(
-                                'Create Schedule',
+                                'Update Schedule',
                                 style: TextStyle(fontSize: 16),
                               ),
                             ],
