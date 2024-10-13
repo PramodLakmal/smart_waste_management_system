@@ -8,10 +8,10 @@ import 'package:smart_waste_management_system/screens/home_screen.dart';
 import 'special_waste_collection_schedule.dart'; // Import your SpecialWasteCollectionSchedule page here
 import '../../models/schedule_model.dart';
 
-
 class WasteCollectionSchedule extends StatefulWidget {
   @override
-  _WasteCollectionScheduleState createState() => _WasteCollectionScheduleState();
+  _WasteCollectionScheduleState createState() =>
+      _WasteCollectionScheduleState();
 }
 
 class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
@@ -19,7 +19,8 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
   String selectedMonth = DateFormat('MMMM').format(DateTime.now());
   bool isMonthView = true;
 
-  Map<String, List<Schedule>> groupSchedulesByMonth(List<Schedule> schedules) {
+  Map<String, List<Schedule>> groupSchedulesByMonth(
+      List<Schedule> schedules) {
     Map<String, List<Schedule>> grouped = {};
     for (var schedule in schedules) {
       String month = DateFormat('MMMM').format(schedule.startTime);
@@ -47,7 +48,9 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: Text('Waste Collection Schedule', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+        title: Text('Waste Collection Schedule',
+            style: TextStyle(
+                color: Colors.black87, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: IconThemeData(color: Colors.black87),
@@ -77,7 +80,9 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}', style: TextStyle(color: Colors.red)));
+                  return Center(
+                      child: Text('Error: ${snapshot.error}',
+                          style: TextStyle(color: Colors.red)));
                 }
 
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -88,7 +93,8 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
                     .map((doc) => Schedule.fromFirestore(doc))
                     .toList();
 
-                Map<String, List<Schedule>> groupedSchedules = groupSchedulesByMonth(schedules);
+                Map<String, List<Schedule>> groupedSchedules =
+                    groupSchedulesByMonth(schedules);
 
                 return ListView(
                   padding: EdgeInsets.all(16),
@@ -129,7 +135,10 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
               SizedBox(width: 8),
               TextButton.icon(
                 icon: Icon(Icons.arrow_drop_down, color: Colors.blue[700]),
-                label: Text(selectedMonth, style: TextStyle(color: Colors.blue[700], fontWeight: FontWeight.bold)),
+                label: Text(selectedMonth,
+                    style: TextStyle(
+                        color: Colors.blue[700],
+                        fontWeight: FontWeight.bold)),
                 onPressed: () {
                   // Show month selector
                 },
@@ -156,14 +165,16 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
       },
       child: Text(label),
       style: ElevatedButton.styleFrom(
-        foregroundColor: isSelected ? Colors.white : Colors.black87, backgroundColor: isSelected ? Colors.blue[700] : Colors.grey[200],
+        foregroundColor: isSelected ? Colors.white : Colors.black87,
+        backgroundColor: isSelected ? Colors.blue[700] : Colors.grey[200],
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       ),
     );
   }
 
-  List<Widget> _buildScheduleList(Map<String, List<Schedule>> groupedSchedules) {
+  List<Widget> _buildScheduleList(
+      Map<String, List<Schedule>> groupedSchedules) {
     List<Widget> widgets = [];
 
     groupedSchedules.forEach((month, schedules) {
@@ -227,8 +238,11 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
   }
 
   Widget _buildScheduleCard(Schedule schedule) {
-    Color borderColor = schedule.status == 'completed' ? Colors.green : Colors.orange;
-    Color backgroundColor = schedule.status == 'completed' ? Colors.green[50]! : Colors.orange[50]!;
+    Color borderColor =
+        schedule.status == 'completed' ? Colors.green : Colors.orange;
+    Color backgroundColor = schedule.status == 'completed'
+        ? Colors.green[50]!
+        : Colors.orange[50]!;
 
     int requestCount = schedule.userIds.length;
 
@@ -282,19 +296,22 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
                 SizedBox(height: 4),
                 _buildInfoRow(Icons.person_outline, schedule.wasteCollector),
                 SizedBox(height: 4),
-                _buildInfoRow(Icons.group, '$requestCount request${requestCount == 1 ? '' : 's'}'),
+                _buildInfoRow(
+                    Icons.group, '$requestCount request${requestCount == 1 ? '' : 's'}'),
                 SizedBox(height: 8),
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: schedule.status == 'completed' ? Colors.green : Colors.orange,
-                    borderRadius: BorderRadius.circular(12),
+                    color: borderColor.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    schedule.status == 'completed' ? 'Completed' : 'Pending',
+                    schedule.status == 'completed'
+                        ? 'COMPLETED'
+                        : 'IN PROGRESS',
                     style: TextStyle(
-                      color: Colors.white,
                       fontWeight: FontWeight.bold,
+                      color: borderColor,
                       fontSize: 12,
                     ),
                   ),
@@ -310,12 +327,15 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
   Widget _buildInfoRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: Colors.grey[600]),
+        Icon(icon, size: 16, color: Colors.grey[600]),
         SizedBox(width: 4),
         Expanded(
           child: Text(
             text,
-            style: TextStyle(fontSize: 12, color: Colors.grey[800]),
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.black87,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

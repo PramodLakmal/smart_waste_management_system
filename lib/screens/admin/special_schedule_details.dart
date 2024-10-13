@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart'; // Import for formatting dates and times
 import 'package:smart_waste_management_system/screens/admin/special_waste_collection_schedule.dart';
 import '../../models/special_schedule_model.dart'; // Import your SpecialSchedule model
+import 'update_special_schedule_page.dart'; // Import your UpdateSpecialSchedulePage
 
 class SpecialScheduleDetailsPage extends StatelessWidget {
   final SpecialSchedule specialSchedule;
@@ -157,7 +158,6 @@ class SpecialScheduleDetailsPage extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-
                         ElevatedButton.icon(
                           onPressed: () async {
                             bool confirmDelete = await showDialog(
@@ -191,6 +191,31 @@ class SpecialScheduleDetailsPage extends StatelessWidget {
                             ),
                           ),
                         ),
+
+                        // Add Edit Button
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => UpdateSpecialSchedulePage(
+                                  specialSchedule: specialSchedule, // Pass the whole object here
+                                ),
+                              ),
+                            );
+                          },
+                          icon: Icon(Icons.edit),
+                          label: Text('Edit'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                          ),
+                        ),
+
+
                       ],
                     ),
                     SizedBox(height: 24),
@@ -207,7 +232,7 @@ class SpecialScheduleDetailsPage extends StatelessWidget {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(builder: (context) => SpecialWasteCollectionSchedule()),
-                          ); // Navigate back to the SpecialWasteCollectionSchedule page                                     
+                          ); // Navigate back to the SpecialWasteCollectionSchedule page
                         },
                         child: Text('Back'),
                       ),
@@ -222,4 +247,3 @@ class SpecialScheduleDetailsPage extends StatelessWidget {
     );
   }
 }
-

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:percent_indicator/percent_indicator.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import '../user/special_waste_collection_request_screen.dart';
 import '../user/view_my_requests_screen.dart';
 import '../profile/profile_screen.dart';
+import 'payment_screen.dart';
 
 class UserHomeScreen extends StatefulWidget {
   @override
@@ -28,46 +28,48 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     super.initState();
     _screens.add(_buildHome());
     _screens.add(ViewRequestsScreen());
+    _screens.add(PaymentScreen());
     _screens.add(ProfileScreen());
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Waste Management'),
-        backgroundColor: Colors.green,
-        actions: kIsWeb ? _buildWebNavBar() : null,
-      ),
+      appBar: kIsWeb ? _buildWebAppBar() : _buildMobileAppBar(),
       body: _screens[_currentIndex],
-      bottomNavigationBar: !kIsWeb
-          ? BottomNavigationBar(
-              items: [
-                BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.request_page), label: 'Special Requests'),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.person), label: 'Profile'),
-              ],
-              currentIndex: _currentIndex,
-              onTap: (index) => setState(() => _currentIndex = index),
-              selectedItemColor: Colors.green,
-              unselectedItemColor: Colors.grey,
-              showUnselectedLabels: true,
-            )
-          : null,
+      bottomNavigationBar: !kIsWeb ? _buildMobileBottomNavBar() : null,
+    );
+  }
+
+  AppBar _buildWebAppBar() {
+    return AppBar(
+      title: Text('Smart Waste Management', style: TextStyle(color: Colors.white)),
+      backgroundColor: Color(0xFF2E7D32),
+      actions: [
+        ..._buildWebNavBar(),
+        SizedBox(width: 20),
+      ],
+    );
+  }
+
+  AppBar _buildMobileAppBar() {
+    return AppBar(
+      title: Text('Smart Waste', style: TextStyle(color: Colors.white)),
+      backgroundColor: Color(0xFF2E7D32),
+      elevation: 0,
     );
   }
 
   List<Widget> _buildWebNavBar() {
     return [
-      _buildWebNavBarItem('Home', 0),
-      _buildWebNavBarItem('Special Requests', 1),
-      _buildWebNavBarItem('Profile', 2),
+      _buildWebNavBarItem('Home', 0, Icons.home),
+      _buildWebNavBarItem('Special Requests', 1, Icons.request_page),
+      _buildWebNavBarItem('Payments', 2, Icons.payment),
+      _buildWebNavBarItem('Profile', 3, Icons.person),
     ];
   }
 
-  Widget _buildWebNavBarItem(String title, int index) {
+  Widget _buildWebNavBarItem(String title, int index, IconData icon) {
     bool isSelected = _currentIndex == index;
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 8),
@@ -75,12 +77,10 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         borderRadius: BorderRadius.circular(20),
         color: isSelected ? Colors.white.withOpacity(0.2) : Colors.transparent,
       ),
-      child: TextButton(
+      child: TextButton.icon(
         onPressed: () => setState(() => _currentIndex = index),
-        style: TextButton.styleFrom(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        ),
-        child: Text(
+        icon: Icon(icon, color: Colors.white),
+        label: Text(
           title,
           style: TextStyle(
             color: Colors.white,
@@ -91,65 +91,83 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     );
   }
 
+  Widget _buildMobileBottomNavBar() {
+    return BottomNavigationBar(
+      items: [
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+        BottomNavigationBarItem(icon: Icon(Icons.request_page), label: 'Requests'),
+        BottomNavigationBarItem(icon: Icon(Icons.payment), label: 'Payments'),
+        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+      ],
+      currentIndex: _currentIndex,
+      onTap: (index) => setState(() => _currentIndex = index),
+      selectedItemColor: Color(0xFF2E7D32),
+      unselectedItemColor: Colors.grey,
+      showUnselectedLabels: true,
+    );
+  }
+
   Widget _buildHome() {
-  return SingleChildScrollView(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CarouselSlider(
-          options: CarouselOptions(
-            height: 200.0,
-            autoPlay: true,
-            enlargeCenterPage: true,
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildCarousel(),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'My Bins',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF2E7D32)),
+                ),
+                SizedBox(height: 16),
+                _buildCategorizedBinsList(),
+              ],
+            ),
           ),
-          items: carouselImages.map((imageUrl) {
-            return Builder(
-              builder: (BuildContext context) {
-                return Container(
-                  width: MediaQuery.of(context).size.width,
-                  margin: EdgeInsets.symmetric(horizontal: 5.0),
-                  child: Image.asset(imageUrl, fit: BoxFit.cover),
-                );
-              },
-            );
-          }).toList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCarousel() {
+    return Container(
+      height: 200,
+      child: CarouselSlider(
+        options: CarouselOptions(
+          height: 200.0,
+          autoPlay: true,
+          enlargeCenterPage: true,
+          aspectRatio: 16 / 9,
+          autoPlayCurve: Curves.fastOutSlowIn,
+          enableInfiniteScroll: true,
+          autoPlayAnimationDuration: Duration(milliseconds: 800),
+          viewportFraction: 0.8,
         ),
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'My Bins',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 16),
-              _buildBinsList(),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      SpecialWasteRequestScreen(), // Navigate to the special request screen
+        items: carouselImages.map((imageUrl) {
+          return Builder(
+            builder: (BuildContext context) {
+              return Container(
+                width: MediaQuery.of(context).size.width,
+                margin: EdgeInsets.symmetric(horizontal: 5.0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8.0),
+                  image: DecorationImage(
+                    image: AssetImage(imageUrl),
+                    fit: BoxFit.cover,
+                  ),
                 ),
               );
             },
-            child: Text('Special Waste Collection Request'),
-          ),
-        ),
-      ],
-    ),
-  );
-}
+          );
+        }).toList(),
+      ),
+    );
+  }
 
-
-  Widget _buildBinsList() {
+  Widget _buildCategorizedBinsList() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('bins')
@@ -163,150 +181,96 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         if (bins.isEmpty) {
           return Center(child: Text('No bins added yet.'));
         }
-        return kIsWeb ? _buildWebGrid(bins) : _buildMobileList(bins);
-      },
-    );
-  }
 
-  Widget _buildWebGrid(List<QueryDocumentSnapshot> bins) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 0.8,
-      ),
-      itemCount: bins.length,
-      itemBuilder: (context, index) {
-        final binData = bins[index].data() as Map<String, dynamic>;
-        _checkAndSendRequest(binData);
-        return _buildBinCard(binData, isWeb: true);
-      },
-    );
-  }
+        Map<String, List<QueryDocumentSnapshot>> categorizedBins = {};
+        for (var bin in bins) {
+          final binData = bin.data() as Map<String, dynamic>;
+          final type = binData['type'] ?? 'Unknown';
+          if (!categorizedBins.containsKey(type)) {
+            categorizedBins[type] = [];
+          }
+          categorizedBins[type]!.add(bin);
+        }
 
-  Widget _buildMobileList(List<QueryDocumentSnapshot> bins) {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      itemCount: bins.length,
-      itemBuilder: (context, index) {
-        final binData = bins[index].data() as Map<String, dynamic>;
-        _checkAndSendRequest(binData);
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8.0),
-          child: _buildBinCard(binData, isWeb: false),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: categorizedBins.entries.map((entry) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Text(
+                    entry.key,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF4CAF50)),
+                  ),
+                ),
+                _buildBinsGrid(entry.value),
+                SizedBox(height: 16),
+              ],
+            );
+          }).toList(),
         );
       },
     );
   }
 
-  Widget _buildBinCard(Map<String, dynamic> binData, {required bool isWeb}) {
+ Widget _buildBinCard(Map<String, dynamic> binData) {
     final filledPercentage = (binData['filledPercentage'] ?? 0) / 100;
     final isFull = filledPercentage >= 0.9;
     final isPending = !(binData['confirmed'] ?? false);
+    final weight = binData['weight'] ?? 0.0;
+    final isCollectionRequested = binData['collectionRequestSent'] ?? false;
 
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
-        padding: EdgeInsets.all(12),
+        padding: EdgeInsets.all(kIsWeb ? 12 : 8),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.white, Color(0xFFE0F2F1)],
+            colors: [Colors.white, Color(0xFFE8F5E9)],
           ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    binData['nickname'] ?? 'Unnamed Bin',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    binData['type'] ?? 'Unknown',
-                    style: TextStyle(fontSize: 12, color: Colors.green),
-                  ),
-                ),
-              ],
+            Text(
+              binData['nickname'] ?? 'Unnamed Bin',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF2E7D32)),
+              overflow: TextOverflow.ellipsis,
             ),
-            SizedBox(height: 12),
-            if (isWeb)
-              Center(
+            SizedBox(height: kIsWeb ? 8 : 4),
+            Expanded(
+              child: Center(
                 child: CircularPercentIndicator(
-                  radius: 60.0,
-                  lineWidth: 10.0,
+                  radius: kIsWeb ? 60.0 : 55.0,
+                  lineWidth: 8.0,
                   percent: filledPercentage,
                   center: Text(
                     "${(filledPercentage * 100).toStringAsFixed(0)}%",
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                   ),
                   progressColor: _getProgressColor(filledPercentage),
                   backgroundColor: Colors.grey[300]!,
                   circularStrokeCap: CircularStrokeCap.round,
                   animation: true,
                 ),
-              )
-            else
-              LinearPercentIndicator(
-                lineHeight: 8.0,
-                percent: filledPercentage,
-                progressColor: _getProgressColor(filledPercentage),
-                backgroundColor: Colors.grey[300],
-                barRadius: Radius.circular(4),
-                padding: EdgeInsets.zero,
               ),
-            SizedBox(height: 8),
+            ),
+            SizedBox(height: kIsWeb ? 8 : 4),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (!isWeb)
-                  Text(
-                    "${(filledPercentage * 100).toStringAsFixed(0)}% Full",
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                  ),
-                if (isFull)
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      'Collection Requested',
-                      style: TextStyle(fontSize: 12, color: Colors.orange),
-                    ),
-                  )
-                else if (isPending)
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      'Pending',
-                      style: TextStyle(fontSize: 12, color: Colors.blue),
-                    ),
-                  ),
+                Text(
+                  "${weight.toStringAsFixed(1)}${kIsWeb ? ' kg' : 'kg'}",
+                  style: TextStyle(fontSize: kIsWeb ? 12 : 10, color: Colors.grey[600]),
+                ),
+                _buildStatusChip(isFull, isPending, isCollectionRequested),
               ],
             ),
           ],
@@ -314,6 +278,62 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
       ),
     );
   }
+
+
+Widget _buildStatusChip(bool isFull, bool isPending, bool isCollectionRequested) {
+    if (isCollectionRequested) {
+      return _buildChip(
+        kIsWeb ? 'Collection Requested' : 'Requested',
+        Colors.blue
+      );
+    } else if (isFull) {
+      return _buildChip('Full', Colors.red);
+    } else if (isPending) {
+      return _buildChip('Pending', Colors.orange);
+    } else {
+      return _buildChip('Active', Color(0xFF4CAF50));
+    }
+  }
+
+  Widget _buildChip(String label, Color color) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color, width: 1),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: kIsWeb ? 10 : 9,
+          color: color,
+          fontWeight: FontWeight.bold
+        ),
+      ),
+    );
+  }
+
+Widget _buildBinsGrid(List<QueryDocumentSnapshot> bins) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: kIsWeb ? 6 : 2,
+        crossAxisSpacing: kIsWeb ? 16 : 12,
+        mainAxisSpacing: kIsWeb ? 16 : 12,
+        childAspectRatio: kIsWeb ? 0.8 : 0.85,
+      ),
+      itemCount: bins.length,
+      itemBuilder: (context, index) {
+        final binData = bins[index].data() as Map<String, dynamic>;
+        _checkAndSendRequest(binData);
+        return _buildBinCard(binData);
+      },
+    );
+  }
+
+
 
   void _checkAndSendRequest(Map<String, dynamic> binData) {
     if (binData['filledPercentage'] >= 90 &&
@@ -351,7 +371,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   }
 
   Color _getProgressColor(double percentage) {
-    if (percentage < 0.5) return Colors.green;
+    if (percentage < 0.5) return Color(0xFF4CAF50);
     if (percentage < 0.75) return Colors.orange;
     return Colors.red;
   }
