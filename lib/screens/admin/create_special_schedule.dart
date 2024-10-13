@@ -21,7 +21,6 @@ class CreateSpecialSchedulePage extends StatefulWidget {
 }
 
 class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
-  final TextEditingController _vehicleController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   
@@ -56,53 +55,53 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
   }
 
   Future<void> _createSpecialSchedule() async {
-    if (!_formKey.currentState!.validate()) return;
+  if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
-    try {
-      await FirebaseFirestore.instance.collection('specialschedule').add({
-        'requestId': widget.requestId,
-        'city': widget.city,
-        'scheduledDate': widget.scheduledDate,
-        'address': widget.address,
-        'wasteTypes': widget.wasteTypes,
-        'wasteCollector': _selectedCollector, // Save the selected collector's name
-        'wasteCollectorId': _selectedCollectorId, // Save the selected collector's ID
-        'vehicleNumber': _vehicleController.text,
-        'status': 'schedule created',
-        'createdAt': DateTime.now(),
-      });
+  setState(() => _isLoading = true);
+  try {
+    await FirebaseFirestore.instance.collection('specialschedule').add({
+      'requestId': widget.requestId,
+      'city': widget.city,
+      'scheduledDate': widget.scheduledDate,
+      'address': widget.address, // Ensure this line is correct
+      'wasteTypes': widget.wasteTypes,
+      'wasteCollector': _selectedCollector, // Save the selected collector's name
+      'wasteCollectorId': _selectedCollectorId, // Save the selected collector's ID
+      'status': 'schedule created',
+      'createdAt': DateTime.now(),
+    });
 
-      // Update the status in the specialWasteRequests collection
-      await FirebaseFirestore.instance
-          .collection('specialWasteRequests')
-          .doc(widget.requestId)
-          .update({'status': 'schedule created'});
+    // Update the status in the specialWasteRequests collection
+    await FirebaseFirestore.instance
+        .collection('specialWasteRequests')
+        .doc(widget.requestId)
+        .update({'status': 'schedule created'});
 
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Schedule created successfully'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+    // Show success message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Schedule created successfully'),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
 
-      // Navigate back after schedule creation
-      Navigator.pop(context);
-    } catch (e) {
-      // Show error message in case of failure
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error creating schedule. Please try again.'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } finally {
-      setState(() => _isLoading = false);
-    }
+    // Navigate back after schedule creation
+    Navigator.pop(context);
+  } catch (e) {
+    // Show error message in case of failure
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error creating schedule. Please try again.'),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  } finally {
+    setState(() => _isLoading = false);
   }
+}
+
 
   Widget _buildInfoCard(String title, String value, IconData icon) {
     return Card(
@@ -247,20 +246,6 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
                             ),
                           ),
                           SizedBox(height: 16),
-                          TextFormField(
-                            controller: _vehicleController,
-                            decoration: InputDecoration(
-                              labelText: 'Vehicle Number',
-                              prefixIcon: Icon(Icons.local_shipping),
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (value) {
-                              if (value?.isEmpty ?? true) {
-                                return 'Please enter vehicle number';
-                              }
-                              return null;
-                            },
-                          ),
                         ],
                       ),
                     ),
