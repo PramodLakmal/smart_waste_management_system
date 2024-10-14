@@ -14,7 +14,6 @@ class UpdateSpecialSchedulePage extends StatefulWidget {
 }
 
 class _UpdateSpecialSchedulePageState extends State<UpdateSpecialSchedulePage> {
-  final TextEditingController _vehicleController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
