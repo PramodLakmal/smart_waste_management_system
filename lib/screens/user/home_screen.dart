@@ -4,9 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:smart_waste_management_system/screens/user/payment.dart';
 import '../user/view_my_requests_screen.dart';
 import '../profile/profile_screen.dart';
-import 'payment_screen.dart';
 
 class UserHomeScreen extends StatefulWidget {
   @override
@@ -28,7 +28,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     super.initState();
     _screens.add(_buildHome());
     _screens.add(ViewRequestsScreen());
-    _screens.add(PaymentScreen());
+    _screens.add(Payment());
     _screens.add(ProfileScreen());
   }
 
@@ -43,7 +43,8 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
   AppBar _buildWebAppBar() {
     return AppBar(
-      title: Text('Smart Waste Management', style: TextStyle(color: Colors.white)),
+      title:
+          Text('Smart Waste Management', style: TextStyle(color: Colors.white)),
       backgroundColor: Color(0xFF2E7D32),
       actions: [
         ..._buildWebNavBar(),
@@ -95,7 +96,8 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     return BottomNavigationBar(
       items: [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.request_page), label: 'Requests'),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.request_page), label: 'Requests'),
         BottomNavigationBarItem(icon: Icon(Icons.payment), label: 'Payments'),
         BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
       ],
@@ -120,7 +122,10 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
               children: [
                 Text(
                   'My Bins',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF2E7D32)),
+                  style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2E7D32)),
                 ),
                 SizedBox(height: 16),
                 _buildCategorizedBinsList(),
@@ -336,7 +341,10 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           children: [
             Text(
               binData['nickname'] ?? 'Unnamed Bin',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF2E7D32)),
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2E7D32)),
               overflow: TextOverflow.ellipsis,
             ),
             SizedBox(height: kIsWeb ? 8 : 4),
@@ -363,7 +371,8 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
               children: [
                 Text(
                   "${weight.toStringAsFixed(1)}${kIsWeb ? ' kg' : 'kg'}",
-                  style: TextStyle(fontSize: kIsWeb ? 12 : 10, color: Colors.grey[600]),
+                  style: TextStyle(
+                      fontSize: kIsWeb ? 12 : 10, color: Colors.grey[600]),
                 ),
                 _buildStatusChip(isFull, isPending, isCollectionRequested),
               ],
@@ -377,9 +386,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   Widget _buildStatusChip(bool isFull, bool isPending, bool isCollectionRequested) {
     if (isCollectionRequested) {
       return _buildChip(
-        kIsWeb ? 'Collection Requested' : 'Requested',
-        Colors.blue
-      );
+          kIsWeb ? 'Collection Requested' : 'Requested', Colors.blue);
     } else if (isFull) {
       return _buildChip('Full', Colors.red);
     } else if (isPending) {
@@ -400,15 +407,14 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
       child: Text(
         label,
         style: TextStyle(
-          fontSize: kIsWeb ? 10 : 9,
-          color: color,
-          fontWeight: FontWeight.bold
-        ),
+            fontSize: kIsWeb ? 10 : 9,
+            color: color,
+            fontWeight: FontWeight.bold),
       ),
     );
   }
 
-Widget _buildBinsGrid(List<QueryDocumentSnapshot> bins) {
+  Widget _buildBinsGrid(List<QueryDocumentSnapshot> bins) {
     return GridView.builder(
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
