@@ -2,10 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:smart_waste_management_system/screens/admin/create_schedule.dart';
-import 'package:smart_waste_management_system/screens/admin/schedule_details.dart'; // Correct import
+import 'package:smart_waste_management_system/screens/admin/schedule_details.dart';
 import 'package:smart_waste_management_system/screens/admin/special_requests_for_scheduling.dart';
 import 'package:smart_waste_management_system/screens/home_screen.dart';
-import 'special_waste_collection_schedule.dart'; // Import your SpecialWasteCollectionSchedule page here
+import 'special_waste_collection_schedule.dart';
 import '../../models/schedule_model.dart';
 
 class WasteCollectionSchedule extends StatefulWidget {
