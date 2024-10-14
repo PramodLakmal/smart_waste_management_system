@@ -7,7 +7,7 @@ import '../../models/schedule_model.dart';
 class ScheduleDetailsPage extends StatelessWidget {
   final Schedule schedule;
 
-  const ScheduleDetailsPage({Key? key, required this.schedule}) : super(key: key);
+  const ScheduleDetailsPage({super.key, required this.schedule});
 
   String formatDateTime(DateTime dateTime) {
     return DateFormat('yyyy-MM-dd – hh:mm a').format(dateTime);

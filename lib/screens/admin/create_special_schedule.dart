@@ -8,7 +8,7 @@ class CreateSpecialSchedulePage extends StatefulWidget {
   final String address;
   final List wasteTypes;
 
-  CreateSpecialSchedulePage({
+  const CreateSpecialSchedulePage({super.key, 
     required this.requestId,
     required this.city,
     required this.scheduledDate,
@@ -209,7 +209,7 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
                                 ),
                               ],
                             ),
-                          )).toList(),
+                          )),
                         ],
                       ),
                     ),

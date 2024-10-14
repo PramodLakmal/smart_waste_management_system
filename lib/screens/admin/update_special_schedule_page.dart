@@ -6,8 +6,7 @@ import '../../models/special_schedule_model.dart'; // Import your SpecialSchedul
 class UpdateSpecialSchedulePage extends StatefulWidget {
   final SpecialSchedule specialSchedule;
 
-  const UpdateSpecialSchedulePage({Key? key, required this.specialSchedule})
-      : super(key: key);
+  const UpdateSpecialSchedulePage({super.key, required this.specialSchedule});
 
   @override
   _UpdateSpecialSchedulePageState createState() => _UpdateSpecialSchedulePageState();
@@ -184,7 +183,7 @@ class _UpdateSpecialSchedulePageState extends State<UpdateSpecialSchedulePage> {
                                 ),
                               ],
                             ),
-                          )).toList(),
+                          )),
                         ],
                       ),
                     ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class WasteCollectionRequestsScreen extends StatefulWidget {
+  const WasteCollectionRequestsScreen({super.key});
+
   @override
   _WasteCollectionRequestsScreenState createState() => _WasteCollectionRequestsScreenState();
 }

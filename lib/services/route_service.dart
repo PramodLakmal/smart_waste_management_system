@@ -2,7 +2,7 @@
 import 'package:smart_waste_management_system/models/route_model.dart';
 
 class RouteService {
-  List<RouteModel> _routes = []; // In-memory storage for routes (for demonstration)
+  final List<RouteModel> _routes = []; // In-memory storage for routes (for demonstration)
 
   Future<List<RouteModel>> getAllRoutes() async {
     // Simulate a network delay

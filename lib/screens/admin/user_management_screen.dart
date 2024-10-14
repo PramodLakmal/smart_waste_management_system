@@ -4,6 +4,8 @@ import '../profile/edit_profile_screen.dart'; // Ensure to import the edit profi
 import '../../models/user_model.dart'; // Ensure to import UserModel
 
 class UserManagementScreen extends StatefulWidget {
+  const UserManagementScreen({super.key});
+
   @override
   _UserManagementScreenState createState() => _UserManagementScreenState();
 }

@@ -7,6 +7,8 @@ import 'edit_my_requests_screen.dart';
 import 'special_waste_collection_request_screen.dart';
 
 class ViewRequestsScreen extends StatefulWidget {
+  const ViewRequestsScreen({super.key});
+
   @override
   _ViewRequestsScreenState createState() => _ViewRequestsScreenState();
 }
@@ -457,6 +459,6 @@ class _ViewRequestsScreenState extends State<ViewRequestsScreen> with SingleTick
 
 extension StringExtension on String {
   String capitalize() {
-    return "${this[0].toUpperCase()}${this.substring(1)}";
+    return "${this[0].toUpperCase()}${substring(1)}";
   }
 }

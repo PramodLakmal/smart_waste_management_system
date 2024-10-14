@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddVehicleForm extends StatefulWidget {
+  const AddVehicleForm({super.key});
+
   @override
   _AddVehicleFormState createState() => _AddVehicleFormState();
 }
@@ -115,8 +117,8 @@ class _AddVehicleFormState extends State<AddVehicleForm> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _addVehicle,
-                child: Text('Add Vehicle'),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                child: Text('Add Vehicle'),
               ),
             ],
           ),

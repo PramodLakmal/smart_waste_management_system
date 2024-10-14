@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 class EditRequestScreen extends StatefulWidget {
   final String requestId;
 
-  EditRequestScreen({required this.requestId});
+  const EditRequestScreen({super.key, required this.requestId});
 
   @override
   _EditRequestScreenState createState() => _EditRequestScreenState();

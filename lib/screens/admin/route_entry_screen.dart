@@ -3,6 +3,8 @@ import 'package:smart_waste_management_system/models/route_model.dart';
 import 'package:smart_waste_management_system/services/route_service.dart';
 
 class RouteEntryScreen extends StatefulWidget {
+  const RouteEntryScreen({super.key});
+
   @override
   _RouteEntryScreenState createState() => _RouteEntryScreenState();
 }

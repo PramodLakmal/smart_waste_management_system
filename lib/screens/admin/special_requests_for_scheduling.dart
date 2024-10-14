@@ -7,6 +7,8 @@ import 'package:smart_waste_management_system/screens/admin/waste_collection_sch
 import 'package:smart_waste_management_system/screens/home_screen.dart';
 
 class SpecialRequestsForSchedulingScreen extends StatefulWidget {
+  const SpecialRequestsForSchedulingScreen({super.key});
+
   @override
   _SpecialRequestsForSchedulingScreenState createState() => _SpecialRequestsForSchedulingScreenState();
 }
@@ -119,7 +121,7 @@ class _SpecialRequestsForSchedulingScreenState extends State<SpecialRequestsForS
                             Text('${waste['type']} - ${waste['weight']} kg', style: TextStyle(fontSize: 15)),
                           ],
                         ),
-                      )).toList(),
+                      )),
                       SizedBox(height: 16),
                       if (status != 'schedule created')
                         ElevatedButton.icon(
@@ -171,6 +173,8 @@ class _SpecialRequestsForSchedulingScreenState extends State<SpecialRequestsForS
 }
 // Sidebar widget
 class Sidebar extends StatelessWidget {
+  const Sidebar({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Drawer(

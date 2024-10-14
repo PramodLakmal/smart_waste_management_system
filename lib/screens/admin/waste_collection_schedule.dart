@@ -9,6 +9,8 @@ import 'special_waste_collection_schedule.dart'; // Import your SpecialWasteColl
 import '../../models/schedule_model.dart';
 
 class WasteCollectionSchedule extends StatefulWidget {
+  const WasteCollectionSchedule({super.key});
+
   @override
   _WasteCollectionScheduleState createState() =>
       _WasteCollectionScheduleState();
@@ -166,13 +168,13 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
       onPressed: () {
         setState(() => isMonthView = label == 'Month');
       },
-      child: Text(label),
       style: ElevatedButton.styleFrom(
         foregroundColor: isSelected ? Colors.white : Colors.black87,
         backgroundColor: isSelected ? Colors.green[700] : Colors.grey[200],
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       ),
+      child: Text(label),
     );
   }
 
@@ -348,6 +350,8 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
 
 // Sidebar widget
 class Sidebar extends StatelessWidget {
+  const Sidebar({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Drawer(

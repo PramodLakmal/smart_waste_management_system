@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'completed_speacial_schedules.dart';
 
 class SpecialSchedulePage extends StatefulWidget {
+  const SpecialSchedulePage({super.key});
+
   @override
   _SpecialSchedulePageState createState() => _SpecialSchedulePageState();
 }
@@ -14,8 +16,8 @@ class _SpecialSchedulePageState extends State<SpecialSchedulePage> {
 
   @override
   Widget build(BuildContext context) {
-    final FirebaseAuth _auth = FirebaseAuth.instance;
-    final User? currentUser = _auth.currentUser;
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    final User? currentUser = auth.currentUser;
 
     if (currentUser == null) {
       return Scaffold(
@@ -127,11 +129,11 @@ class _SpecialSchedulePageState extends State<SpecialSchedulePage> {
                             : () async {
                                 await _completeSchedule(selectedScheduleId!);
                               },
-                        child: Text('Collect Waste'),
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.white, backgroundColor: Color(0xFF4CAF50),
                           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         ),
+                        child: Text('Collect Waste'),
                       ),
                       ElevatedButton(
                         onPressed: () {
@@ -140,11 +142,11 @@ class _SpecialSchedulePageState extends State<SpecialSchedulePage> {
                             MaterialPageRoute(builder: (context) => CompletedSchedulesPage()),
                           );
                         },
-                        child: Text('View Completed'),
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.white, backgroundColor: Color(0xFF81C784),
                           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         ),
+                        child: Text('View Completed'),
                       ),
                     ],
                   ),

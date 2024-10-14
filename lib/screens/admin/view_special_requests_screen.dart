@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 class AdminViewRequestsScreen extends StatefulWidget {
+  const AdminViewRequestsScreen({super.key});
+
   @override
   _AdminViewRequestsScreenState createState() => _AdminViewRequestsScreenState();
 }
@@ -81,7 +83,7 @@ class _AdminViewRequestsScreenState extends State<AdminViewRequestsScreen> {
                       Text('Waste Types:', style: TextStyle(fontWeight: FontWeight.bold)),
                       ...wasteTypes.map((waste) {
                         return Text('${waste['type']} - ${waste['weight']} kg');
-                      }).toList(),
+                      }),
                       SizedBox(height: 8.0),
                       if (status == 'pending')
                         ElevatedButton(
