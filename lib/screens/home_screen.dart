@@ -9,7 +9,8 @@ import '../screens/admin/waste_collection_requests_screen.dart';
 import '../screens/admin/view_special_requests_screen.dart';
 import '../screens/admin/waste_collection_schedule.dart';
 import '../../models/schedule_model.dart';
-import '../screens/profile/profile_screen.dart'; 
+import '../screens/profile/profile_screen.dart';
+import 'admin/admin_waste_dasboard.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -145,10 +146,13 @@ class _AdminHomeScreenState extends State<HomeScreen> {
             ),
             _buildAdminCard(
               icon: Icons.map,
-              title: 'Route Monitoring',
+              title: 'Vehicle and Route Monitoring',
               description: 'Monitor Waste Collection Routes',
               onTap: () async {
-                
+                Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AdminWasteDashboard()),
+            );
               },
             ),
           ],

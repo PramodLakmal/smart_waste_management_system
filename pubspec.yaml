@@ -51,6 +51,7 @@ dependencies:
   pdf: ^3.11.1
   path_provider: ^2.1.4
   image_picker_web: ^4.0.0
+  rxdart: ^0.28.0
 
 dev_dependencies:
   flutter_test:
