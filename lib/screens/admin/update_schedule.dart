@@ -7,7 +7,7 @@ import '../../models/schedule_model.dart';
 class UpdateSchedulePage extends StatefulWidget {
   final Schedule schedule;
 
-  const UpdateSchedulePage({Key? key, required this.schedule}) : super(key: key);
+  const UpdateSchedulePage({super.key, required this.schedule});
 
   @override
   _UpdateSchedulePageState createState() => _UpdateSchedulePageState();

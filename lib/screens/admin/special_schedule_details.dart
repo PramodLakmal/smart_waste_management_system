@@ -8,8 +8,7 @@ import 'update_special_schedule_page.dart';
 class SpecialScheduleDetailsPage extends StatelessWidget {
   final SpecialSchedule specialSchedule;
 
-  const SpecialScheduleDetailsPage({Key? key, required this.specialSchedule})
-      : super(key: key);
+  const SpecialScheduleDetailsPage({super.key, required this.specialSchedule});
 
   String formatDateTime(DateTime dateTime) {
     return DateFormat('yyyy-MM-dd – hh:mm a').format(dateTime);
@@ -101,7 +100,7 @@ class SpecialScheduleDetailsPage extends StatelessWidget {
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                           ),
                         );
-                      }).toList(),
+                      }),
                     ],
                   ),
                 ),

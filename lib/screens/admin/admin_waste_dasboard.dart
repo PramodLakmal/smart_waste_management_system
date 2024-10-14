@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'add_vehicle_form.dart';
 
 class AdminWasteDashboard extends StatefulWidget {
+  const AdminWasteDashboard({super.key});
+
   @override
   _AdminWasteDashboardState createState() => _AdminWasteDashboardState();
 }
@@ -96,7 +98,7 @@ class WasteListView extends StatelessWidget {
   final Color cardColor;
   final Color accentColor;
 
-  WasteListView({
+  WasteListView({super.key, 
     required this.collectionName,
     required this.primaryColor,
     required this.secondaryColor,
@@ -277,7 +279,7 @@ class VehicleTrackingView extends StatelessWidget {
   final Color cardColor;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  VehicleTrackingView({
+  VehicleTrackingView({super.key, 
     required this.primaryColor,
     required this.secondaryColor,
     required this.cardColor,

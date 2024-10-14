@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddBinScreen extends StatefulWidget {
+  const AddBinScreen({super.key});
+
   @override
   _AddBinScreenState createState() => _AddBinScreenState();
 }

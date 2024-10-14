@@ -9,6 +9,8 @@ import '../user/view_my_requests_screen.dart';
 import '../profile/profile_screen.dart';
 
 class UserHomeScreen extends StatefulWidget {
+  const UserHomeScreen({super.key});
+
   @override
   _UserHomeScreenState createState() => _UserHomeScreenState();
 }
@@ -138,7 +140,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   }
 
   Widget _buildWebCarousel() {
-    return Container(
+    return SizedBox(
       height: 400,
       child: Stack(
         children: [
@@ -184,7 +186,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   }
 
   Widget _buildMobileCarousel() {
-    return Container(
+    return SizedBox(
       height: 200,
       child: CarouselSlider(
         options: CarouselOptions(
@@ -256,7 +258,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     List<Widget> columns = [];
     List<Widget> currentColumn = [];
 
-    categorizedBins.entries.forEach((entry) {
+    for (var entry in categorizedBins.entries) {
       currentColumn.add(
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -285,7 +287,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         );
         currentColumn = [];
       }
-    });
+    }
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -7,6 +7,8 @@ import 'route_monitoring_screen.dart';
 import 'special_schedule_screen.dart';
 
 class WasteCollectorScreen extends StatefulWidget {
+  const WasteCollectorScreen({super.key});
+
   @override
   _WasteCollectorScreenState createState() => _WasteCollectorScreenState();
 }
@@ -148,7 +150,6 @@ class _WasteCollectorScreenState extends State<WasteCollectorScreen> {
                           );
                         }
                       },
-                child: Text('Start Now'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF2E7D32),
                   foregroundColor: Colors.white,
@@ -156,6 +157,7 @@ class _WasteCollectorScreenState extends State<WasteCollectorScreen> {
                       EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                   textStyle: TextStyle(fontSize: 18),
                 ),
+                child: Text('Start Now'),
               ),
               SizedBox(height: 12),
               ElevatedButton(
@@ -167,7 +169,6 @@ class _WasteCollectorScreenState extends State<WasteCollectorScreen> {
                     ),
                   );
                 },
-                child: Text('View Summary Report'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF4CAF50),
                   foregroundColor: Colors.white,
@@ -175,6 +176,7 @@ class _WasteCollectorScreenState extends State<WasteCollectorScreen> {
                       EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                   textStyle: TextStyle(fontSize: 18),
                 ),
+                child: Text('View Summary Report'),
               ),
               SizedBox(height: 12),
               ElevatedButton(
@@ -186,7 +188,6 @@ class _WasteCollectorScreenState extends State<WasteCollectorScreen> {
                     ),
                   );
                 },
-                child: Text('View Special Schedule'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF81C784),
                   foregroundColor: Colors.white,
@@ -194,6 +195,7 @@ class _WasteCollectorScreenState extends State<WasteCollectorScreen> {
                       EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                   textStyle: TextStyle(fontSize: 18),
                 ),
+                child: Text('View Special Schedule'),
               ),
             ],
           ),

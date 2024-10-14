@@ -1,14 +1,12 @@
-import 'dart:io' as io;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 import 'package:printing/printing.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'dart:html' as html;
 
 class PaymentHistory extends StatefulWidget {
   const PaymentHistory({super.key});
@@ -202,15 +200,8 @@ class _PaymentHistoryState extends State<PaymentHistory> {
               ),
               const SizedBox(height: 8),
               ElevatedButton(
-                onPressed: () {
-                  _downloadReceipt(electricalWasteWeight, otherWasteWeight,
-                      totalPayment, formattedDate, userId);
-                },
+                onPressed: () => _downloadReceipt(paymentData),
                 child: const Text('Download Receipt'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  foregroundColor: Colors.white,
-                ),
               ),
             ],
           ),
@@ -245,59 +236,57 @@ class _PaymentHistoryState extends State<PaymentHistory> {
     );
   }
 
-  void _downloadReceipt(double electricalWaste, double otherWaste,
-      double totalPayment, String formattedDate, String userId) async {
-    final pdf = pw.Document();
+  Future<void> _downloadReceipt(Map<String, dynamic> paymentData) async {
+    try {
+      final pdf = pw.Document();
 
-    pdf.addPage(
-      pw.Page(
-        build: (pw.Context context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Text('Payment Receipt',
-                  style: pw.TextStyle(
-                      fontSize: 24, fontWeight: pw.FontWeight.bold)),
-              pw.SizedBox(height: 20),
-              pw.Text('Date: $formattedDate'),
-              pw.SizedBox(height: 10),
-              pw.Text('User ID: $userId'),
-              pw.SizedBox(height: 10),
-              pw.Text('Total Payment: \$${totalPayment.toStringAsFixed(2)}'),
-              pw.SizedBox(height: 10),
-              pw.Text('Electrical Waste: $electricalWaste kg'),
-              pw.SizedBox(height: 10),
-              pw.Text('Other Waste: $otherWaste kg'),
-              pw.SizedBox(height: 20),
-              pw.Text('Thank you for recycling!',
-                  style: pw.TextStyle(fontStyle: pw.FontStyle.italic)),
-            ],
-          );
-        },
-      ),
-    );
+      // Add a page to the PDF
+      pdf.addPage(
+        pw.Page(
+          build: (pw.Context context) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text('Receipt',
+                    style: pw.TextStyle(
+                        fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                pw.SizedBox(height: 20),
+                pw.Text(
+                    'Total Payment: \$${paymentData['totalPayment']?.toStringAsFixed(2)}'),
+                pw.Text(
+                    'Electrical Waste: ${paymentData['electricalWasteWeight']} kg'),
+                pw.Text('Other Waste: ${paymentData['otherWasteWeight']} kg'),
+                pw.Text(
+                    'Date: ${DateFormat('yyyy-MM-dd – kk:mm').format((paymentData['timestamp'] as Timestamp).toDate())}'),
+                pw.Text('User ID: ${paymentData['userId'] ?? 'Unknown'}'),
+              ],
+            );
+          },
+        ),
+      );
 
-    if (kIsWeb) {
-      final bytes = await pdf.save();
-      final blob = html.Blob([bytes], 'application/pdf');
-      final url = html.Url.createObjectUrlFromBlob(blob);
-      final anchor = html.AnchorElement(href: url)
-        ..setAttribute('download', 'receipt.pdf')
-        ..click();
-      html.Url.revokeObjectUrl(url);
-    } else {
-      var status = await Permission.storage.request();
-      if (status.isGranted) {
-        final directory = await getApplicationDocumentsDirectory();
-        final file = io.File(
-            '${directory.path}/receipt_${DateTime.now().millisecondsSinceEpoch}.pdf');
-        await file.writeAsBytes(await pdf.save());
+      // Get the application's documents directory
+      Directory appDocDir = await getApplicationDocumentsDirectory();
+      String filePath =
+          '${appDocDir.path}/receipt_${paymentData['userId']}_${DateTime.now().millisecondsSinceEpoch}.pdf';
 
-        await Printing.sharePdf(
-            bytes: await pdf.save(), filename: 'receipt.pdf');
-      } else {
-        print('Storage permission denied');
-      }
+      // Save the PDF file
+      final File file = File(filePath);
+      await file.writeAsBytes(await pdf.save());
+
+      // Show a success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Receipt downloaded to: $filePath')),
+      );
+
+      // Optionally, you can open the PDF directly after creating it
+      await Printing.layoutPdf(
+          onLayout: (PdfPageFormat format) async => pdf.save());
+    } catch (e) {
+      // Handle errors
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error downloading receipt: $e')),
+      );
     }
   }
 }

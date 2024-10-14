@@ -269,7 +269,7 @@ class AnimatedInputField extends StatelessWidget {
   final Color textColor;
 
   const AnimatedInputField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.label,
     this.obscureText = false,
@@ -277,7 +277,7 @@ class AnimatedInputField extends StatelessWidget {
     this.validator,
     required this.fillColor,
     required this.textColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

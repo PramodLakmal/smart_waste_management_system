@@ -61,6 +61,7 @@ class AuthService {
       print(e.toString());
       return null;
     }
+    return null;
   }
 
   // Sign out method

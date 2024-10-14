@@ -7,7 +7,7 @@ class ResponsiveNavBar extends StatefulWidget {
   final int selectedIndex;
   final Function(int) onItemTapped;
 
-  ResponsiveNavBar({required this.selectedIndex, required this.onItemTapped});
+  const ResponsiveNavBar({super.key, required this.selectedIndex, required this.onItemTapped});
 
   @override
   _ResponsiveNavBarState createState() => _ResponsiveNavBarState();

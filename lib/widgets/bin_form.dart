@@ -5,7 +5,7 @@ class BinForm extends StatelessWidget {
   final Function onImagePicked;
   final Function(String type, String nickname, double weight, String description) onSubmit;
 
-  BinForm({
+  BinForm({super.key, 
     required this.formKey,
     required this.onImagePicked,
     required this.onSubmit,

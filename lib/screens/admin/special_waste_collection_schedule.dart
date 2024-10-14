@@ -8,7 +8,7 @@ import 'package:smart_waste_management_system/screens/home_screen.dart';
 import '../../models/special_schedule_model.dart';
 
 class SpecialWasteCollectionSchedule extends StatelessWidget {
-  const SpecialWasteCollectionSchedule({Key? key}) : super(key: key);
+  const SpecialWasteCollectionSchedule({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -286,6 +286,8 @@ class SpecialWasteCollectionSchedule extends StatelessWidget {
 }
 
 class Sidebar extends StatelessWidget {
+  const Sidebar({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
