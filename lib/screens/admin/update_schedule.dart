@@ -72,6 +72,8 @@ class _UpdateSchedulePageState extends State<UpdateSchedulePage> {
         startTime: startDateTime,
         endTime: endDateTime,
         userIds: widget.schedule.userIds,
+        bins: widget.schedule.bins,
+        isScheduled: true,
       );
 
       await FirebaseFirestore.instance

@@ -259,7 +259,7 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
         );
       },
       child: Card(
-        elevation: 2,
+        elevation: 5,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(color: borderColor, width: 2),

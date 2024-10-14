@@ -53,16 +53,15 @@ class _SpecialRequestsForSchedulingScreenState extends State<SpecialRequestsForS
             itemBuilder: (context, index) {
               var request = requests[index];
               String status = request['status'];
-              String requestId = request.id;
               String userId = request['userId'];
               List wasteTypes = request['wasteTypes'];
 
               return Card(
                 margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                elevation: 3,
+                elevation: 5,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 child: Container(
-                  decoration: BoxDecoration(color: Colors.green[50]),
+                  decoration: BoxDecoration(color: Colors.green[100]),
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
