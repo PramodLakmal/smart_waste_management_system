@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:smart_waste_management_system/screens/user/cardDetails.dart';
+import 'package:smart_waste_management_system/screens/user/history.dart';
 
 class Payment extends StatefulWidget {
   const Payment({super.key});
@@ -11,6 +13,10 @@ class Payment extends StatefulWidget {
 }
 
 class _PaymentState extends State<Payment> {
+  final Color darkGreen = const Color(0xFF2E7D32);
+  final Color green = const Color(0xFF4CAF50);
+  final Color lightGreen = const Color(0xFF81C784);
+  final Color lightYellow = const Color(0xFFFFFDE7);
   double totalPayment = 0.0;
   double totalCoins = 0.0;
   double totalElectricalWeight = 0.0;
@@ -20,6 +26,7 @@ class _PaymentState extends State<Payment> {
   double netAmount = 0.0;
   bool usedCoins = false;
   double remainingCoins = 0.0;
+  double penaltyAmount = 0.0; // Added penaltyAmount
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
@@ -49,8 +56,18 @@ class _PaymentState extends State<Payment> {
   Future<void> calculateTotalAmount() async {
     double coinsFromCollectionTotals = await calculateWasteCollectionTotals();
     await calculateSpecialWasteTotals(coinsFromCollectionTotals);
+
+    double computedNetAmount = totalPayment;
+    double computedPenalty = 0.0;
+
+    if (computedNetAmount > 1000) {
+      computedPenalty = computedNetAmount * 0.05;
+      computedNetAmount += computedPenalty;
+    }
+
     setState(() {
-      netAmount = totalPayment;
+      netAmount = computedNetAmount;
+      penaltyAmount = computedPenalty; // Set penaltyAmount
     });
   }
 
@@ -223,6 +240,7 @@ class _PaymentState extends State<Payment> {
           usedCoins = false;
           remainingCoins = 0.0;
         }
+        penaltyAmount = 0.0; // Reset penalty amount
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -325,33 +343,95 @@ class _PaymentState extends State<Payment> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: Text('Payment',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
-        backgroundColor: Colors.teal,
-        elevation: 0,
-        centerTitle: true,
+      backgroundColor: Colors.white,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth > 900) {
+            return _buildWebLayout();
+          } else {
+            return _buildMobileLayout();
+          }
+        },
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildTotalPaymentCard(),
-              const SizedBox(height: 20),
-              _buildInfoCards(),
-              const SizedBox(height: 20),
-              if (usedCoins) _buildDiscountCard(),
-              const SizedBox(height: 20),
-              _buildNetAmountCard(),
-              const SizedBox(height: 30),
-              _buildActionButtons(),
-              if (usedCoins) const SizedBox(height: 20),
-              if (usedCoins) _buildRemainingCoinsCard(),
-            ],
-          ),
+    );
+  }
+
+  Widget _buildWebLayout() {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 2,
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: _buildTotalPaymentCard(),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildInfoCards(),
+                ],
+              ),
+            ),
+            const SizedBox(width: 24),
+            Expanded(
+              flex: 1,
+              child: Card(
+                elevation: 8,
+                color: lightYellow,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15)),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Payment Summary',
+                        style: GoogleFonts.poppins(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: darkGreen,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 20),
+                      if (usedCoins) _buildDiscountCard(),
+                      const SizedBox(height: 20),
+                      _buildNetAmountCard(),
+                      const SizedBox(height: 30),
+                      _buildActionButtons(),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout() {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildTotalPaymentCard(),
+            const SizedBox(height: 20),
+            _buildInfoCards(),
+            const SizedBox(height: 20),
+            if (usedCoins) _buildDiscountCard(),
+            const SizedBox(height: 20),
+            _buildNetAmountCard(),
+            const SizedBox(height: 30),
+            _buildActionButtons(),
+          ],
         ),
       ),
     );
@@ -361,75 +441,118 @@ class _PaymentState extends State<Payment> {
     return Card(
       elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Text(
-              'Total Payment',
-              style: GoogleFonts.poppins(fontSize: 18, color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              '\$${totalPayment.toStringAsFixed(2)}',
-              style: GoogleFonts.poppins(
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-                color: Colors.teal,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.amber, Colors.yellow],
+          ),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Text(
+                'Total Payment',
+                style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    color: darkGreen,
+                    fontWeight: FontWeight.bold),
               ),
-            ),
-          ],
+              const SizedBox(height: 10),
+              Text(
+                '\$${totalPayment.toStringAsFixed(2)}',
+                style: GoogleFonts.poppins(
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              if (totalPayment > 800)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: Text(
+                    'Warning: You will be fined if the total exceeds \$1000',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: Colors.red,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildInfoCards() {
-    return GridView.count(
-      crossAxisCount: 2,
-      crossAxisSpacing: 10,
-      mainAxisSpacing: 10,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      children: [
-        _buildInfoCard(
-            'Electrical Waste',
-            '${totalElectricalWeight.toStringAsFixed(2)} kg',
-            Icons.electrical_services,
-            Colors.orange),
-        _buildInfoCard(
-            'Other Waste',
-            '${totalOtherWeight.toStringAsFixed(2)} kg',
-            Icons.delete_outline,
-            Colors.green),
-        _buildInfoCard('Total Coins', totalCoins.toStringAsFixed(0),
-            Icons.monetization_on, Colors.purple),
-        _buildInfoCard('Net Amount', '\$${netAmount.toStringAsFixed(2)}',
-            Icons.account_balance_wallet, Colors.blue),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return GridView.count(
+          crossAxisCount: constraints.maxWidth > 600 ? 4 : 2,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          children: [
+            _buildInfoCard(
+                'Electrical Waste',
+                '${totalElectricalWeight.toStringAsFixed(2)} kg',
+                Icons.electrical_services),
+            _buildInfoCard(
+                'Other Waste',
+                '${totalOtherWeight.toStringAsFixed(2)} kg',
+                Icons.delete_outline),
+            _buildInfoCard('Total Coins', totalCoins.toStringAsFixed(0),
+                Icons.monetization_on),
+            _buildInfoCard(
+              'Penalty Amount',
+              '\$${penaltyAmount.toStringAsFixed(2)}',
+              Icons.warning,
+            ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildInfoCard(
-      String title, String value, IconData icon, Color color) {
+  Widget _buildInfoCard(String title, String value, IconData icon) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Padding(
-        padding: const EdgeInsets.all(15),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 30, color: color),
-            const SizedBox(height: 10),
-            Text(title,
-                style:
-                    GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600])),
-            const SizedBox(height: 5),
-            Text(value,
-                style: GoogleFonts.poppins(
-                    fontSize: 18, fontWeight: FontWeight.bold)),
-          ],
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [lightGreen, green],
+          ),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(15),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 30, color: Colors.black),
+              const SizedBox(height: 10),
+              Text(title,
+                  style: GoogleFonts.poppins(fontSize: 14, color: Colors.black),
+                  textAlign: TextAlign.center),
+              const SizedBox(height: 5),
+              Text(value,
+                  style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
+                  textAlign: TextAlign.center),
+            ],
+          ),
         ),
       ),
     );
@@ -439,19 +562,19 @@ class _PaymentState extends State<Payment> {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      color: Colors.redAccent,
+      color: lightGreen,
       child: Padding(
         padding: const EdgeInsets.all(15),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Discount from Coins',
-                style: GoogleFonts.poppins(fontSize: 16, color: Colors.white)),
+                style: GoogleFonts.poppins(fontSize: 16, color: Colors.black)),
             Text('-\$${discountFromCoins.toStringAsFixed(2)}',
                 style: GoogleFonts.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white)),
+                    color: Colors.black)),
           ],
         ),
       ),
@@ -462,25 +585,34 @@ class _PaymentState extends State<Payment> {
     return Card(
       elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      color: Colors.blue,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Text(
-              'Net Amount',
-              style: GoogleFonts.poppins(fontSize: 18, color: Colors.white),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              '\$${(usedCoins ? netAmount : totalPayment).toStringAsFixed(2)}',
-              style: GoogleFonts.poppins(
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [green, darkGreen],
+          ),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Text(
+                'Net Amount',
+                style: GoogleFonts.poppins(fontSize: 18, color: Colors.white),
               ),
-            ),
-          ],
+              const SizedBox(height: 10),
+              Text(
+                '\$${netAmount.toStringAsFixed(2)}',
+                style: GoogleFonts.poppins(
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -489,114 +621,89 @@ class _PaymentState extends State<Payment> {
   Widget _buildActionButtons() {
     return Column(
       children: [
-        ElevatedButton.icon(
-          onPressed: totalCoins > 0 ? useCoins : null,
-          icon: const Icon(Icons.credit_score),
-          label: const Text('Use Coins for Discounts'),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-            textStyle:
-                GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
-            backgroundColor: Colors.teal,
-            foregroundColor: Colors.white,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            elevation: 5,
+        const SizedBox(height: 15),
+        SizedBox(
+          width: double.infinity, // Make the button take full available width
+          child: ElevatedButton.icon(
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => AddCardDetails()));
+            },
+            icon: const Icon(Icons.credit_card),
+            label: const Text('Add Card Details'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+              textStyle: GoogleFonts.poppins(
+                  fontSize: 16, fontWeight: FontWeight.w600),
+              backgroundColor: Colors.blue, // Button color
+              foregroundColor: Colors.white, // Text color
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              elevation: 5,
+            ),
           ),
         ),
         const SizedBox(height: 15),
-        ElevatedButton.icon(
-          onPressed: proceedToPay,
-          icon: const Icon(Icons.payment),
-          label: const Text('Proceed to Pay'),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-            textStyle:
-                GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
-            backgroundColor: Colors.orange,
-            foregroundColor: Colors.white,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            elevation: 5,
+        SizedBox(
+          width: double.infinity, // Make the button take full available width
+          child: ElevatedButton.icon(
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => PaymentHistory()));
+            },
+            icon: const Icon(Icons.history),
+            label: const Text('View Payment History'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+              textStyle: GoogleFonts.poppins(
+                  fontSize: 16, fontWeight: FontWeight.w600),
+              backgroundColor: darkGreen,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              elevation: 5,
+            ),
+          ),
+        ),
+        const SizedBox(height: 15),
+        SizedBox(
+          width: double.infinity, // Make the button take full available width
+          child: ElevatedButton.icon(
+            onPressed: totalCoins > 0 ? useCoins : null,
+            icon: const Icon(Icons.monetization_on),
+            label: const Text('Use Coins for Discounts'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+              textStyle: GoogleFonts.poppins(
+                  fontSize: 16, fontWeight: FontWeight.w600),
+              backgroundColor: green,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              elevation: 5,
+            ),
+          ),
+        ),
+        const SizedBox(height: 15),
+        SizedBox(
+          width: double.infinity, // Make the button take full available width
+          child: ElevatedButton.icon(
+            onPressed: proceedToPay,
+            icon: const Icon(Icons.payment),
+            label: const Text('Proceed to Pay'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+              textStyle: GoogleFonts.poppins(
+                  fontSize: 16, fontWeight: FontWeight.w600),
+              backgroundColor: Colors.amber,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              elevation: 5,
+            ),
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildRemainingCoinsCard() {
-    return Card(
-      color: Colors.grey[200],
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Padding(
-        padding: const EdgeInsets.all(15.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Remaining Coins:',
-              style: GoogleFonts.poppins(fontSize: 16, color: Colors.black87),
-            ),
-            Text(
-              remainingCoins.toStringAsFixed(0),
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.purple,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class InfoCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color color;
-
-  const InfoCard({
-    Key? key,
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Padding(
-        padding: const EdgeInsets.all(15.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 30, color: color),
-            const SizedBox(height: 10),
-            Text(
-              label,
-              style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[700]),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 5),
-            Text(
-              value,
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

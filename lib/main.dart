@@ -18,14 +18,13 @@ void main() async {
     // Web-specific Firebase initialization
     await Firebase.initializeApp(
       options: FirebaseOptions(
-        apiKey: "AIzaSyB8wTJe_xaQA7ZeDhAyPISjvNgwnOo9w4A",
-        authDomain: "smart-waste-management-s-b1a36.firebaseapp.com",
-        projectId: "smart-waste-management-s-b1a36",
-        storageBucket: "smart-waste-management-s-b1a36.appspot.com",
-        messagingSenderId: "975854822446",
-        appId: "1:975854822446:web:3c5f58ec502bcf93fb6bbf",
-        measurementId: "G-SWE3EYX58Z"
-      ),
+          apiKey: "AIzaSyB8wTJe_xaQA7ZeDhAyPISjvNgwnOo9w4A",
+          authDomain: "smart-waste-management-s-b1a36.firebaseapp.com",
+          projectId: "smart-waste-management-s-b1a36",
+          storageBucket: "smart-waste-management-s-b1a36.appspot.com",
+          messagingSenderId: "975854822446",
+          appId: "1:975854822446:web:3c5f58ec502bcf93fb6bbf",
+          measurementId: "G-SWE3EYX58Z"),
     );
   } else {
     // Mobile-specific Firebase initialization
