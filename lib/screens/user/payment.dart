@@ -688,7 +688,7 @@ class _PaymentState extends State<Payment> {
         SizedBox(
           width: double.infinity, // Make the button take full available width
           child: ElevatedButton.icon(
-            onPressed: proceedToPay,
+            onPressed: netAmount > 0 ? proceedToPay : null,
             icon: const Icon(Icons.payment),
             label: const Text('Proceed to Pay'),
             style: ElevatedButton.styleFrom(
