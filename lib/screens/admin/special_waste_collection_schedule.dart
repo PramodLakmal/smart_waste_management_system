@@ -13,7 +13,7 @@ class SpecialWasteCollectionSchedule extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.green[100],
       appBar: _buildAppBar(context),
       drawer: Sidebar(),
       body: StreamBuilder<QuerySnapshot>(
@@ -22,7 +22,7 @@ class SpecialWasteCollectionSchedule extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[700]!),
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.green[700]!),
               ),
             );
           }
@@ -65,7 +65,7 @@ class SpecialWasteCollectionSchedule extends StatelessWidget {
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.green[800],
       elevation: 0,
       title: Text(
         'Special Waste Collection',
@@ -93,11 +93,11 @@ class SpecialWasteCollectionSchedule extends StatelessWidget {
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: CircleAvatar(
-            backgroundColor: Colors.blue[700],
+            backgroundColor: Colors.green[700],
             child: Text(
               'A',
               style: TextStyle(
-                color: Colors.white,
+                color: Colors.black,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -167,12 +167,6 @@ class SpecialWasteCollectionSchedule extends StatelessWidget {
               ),
               SizedBox(height: 8),
               _buildInfoRow(
-                Icons.local_shipping,
-                'Vehicle',
-                schedule.vehicleNumber,
-              ),
-              SizedBox(height: 8),
-              _buildInfoRow(
                 Icons.person,
                 'Collector',
                 schedule.wasteCollector,
@@ -190,10 +184,10 @@ class SpecialWasteCollectionSchedule extends StatelessWidget {
     Color statusColor;
     switch (status.toLowerCase()) {
       case 'completed':
-        statusColor = Colors.green;
+        statusColor = Colors.red;
         break;
       case 'schedule created':
-        statusColor = Colors.blue;
+        statusColor = const Color.fromARGB(255, 15, 122, 19);
         break;
       case 'in progress':
         statusColor = Colors.orange;
@@ -252,7 +246,7 @@ class SpecialWasteCollectionSchedule extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: Colors.green[200],
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -299,7 +293,7 @@ class Sidebar extends StatelessWidget {
           Container(
             height: 200,
             decoration: BoxDecoration(
-              color: Colors.blue[700],
+              color: Colors.green[700],
             ),
             child: Stack(
               children: [
@@ -317,7 +311,7 @@ class Sidebar extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue[700],
+                            color: Colors.green[700],
                           ),
                         ),
                       ),
@@ -394,18 +388,18 @@ class Sidebar extends StatelessWidget {
     return ListTile(
       leading: Icon(
         icon,
-        color: isSelected ? Colors.blue[700] : Colors.grey[700],
+        color: isSelected ? Colors.green[700] : Colors.grey[700],
       ),
       title: Text(
         title,
         style: TextStyle(
-          color: isSelected ? Colors.blue[700] : Colors.grey[900],
+          color: isSelected ? Colors.green[700] : Colors.grey[900],
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         ),
       ),
       trailing: showTrailing ? Icon(Icons.chevron_right) : null,
       selected: isSelected,
-      selectedTileColor: Colors.blue[50],
+      selectedTileColor: Colors.green[50],
       onTap: onTap,
     );
   }

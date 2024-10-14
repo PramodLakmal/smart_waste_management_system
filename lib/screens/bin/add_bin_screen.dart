@@ -238,7 +238,7 @@ class _AddBinScreenState extends State<AddBinScreen> {
         padding: EdgeInsets.symmetric(vertical: 16.0),
         child: Text(
           'Add Bin',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
     );

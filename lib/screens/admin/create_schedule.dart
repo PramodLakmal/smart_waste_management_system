@@ -14,7 +14,6 @@ class CreateSchedulePage extends StatefulWidget {
 
 class _CreateSchedulePageState extends State<CreateSchedulePage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _vehicleController = TextEditingController();
   final TextEditingController _collectorController = TextEditingController();
   late DateTime _startDate;
   late DateTime _endDate;
@@ -29,13 +28,16 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
   List<String> _wasteRequestIds = []; // List to store waste collection request IDs
   List<String> _collectors = []; // List to store waste collector names
 
+  final Color darkGreen = Color(0xFF2E7D32);
+  final Color green = Color(0xFF4CAF50);
+  final Color lightGreen = Color(0xFF81C784);
+
   @override
   void initState() {
     super.initState();
     if (widget.schedule != null) {
       // Pre-fill form fields for editing
       _selectedCity = widget.schedule!.city;
-      _vehicleController.text = widget.schedule!.vehicleNumber;
       _collectorController.text = widget.schedule!.wasteCollector;
       _startDate = widget.schedule!.startTime;
       _endDate = widget.schedule!.endTime;
@@ -168,13 +170,13 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
 
       final schedule = Schedule(
         city: _selectedCity!,
-        vehicleNumber: _vehicleController.text,
         wasteCollector: _selectedCollector!,
         wasteCollectorId: wasteCollectorId, // Use the collector ID
         startTime: startDateTime,
         endTime: endDateTime,
         userIds: _userIdsFromCity, // Keep the existing userIds when updating
         bins: _binIdsFromCity, // Save the collected bin IDs
+        isScheduled: true
       );
 
       final scheduleData = schedule.toMap();
@@ -213,6 +215,19 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
       initialDate: initialDate,
       firstDate: DateTime(2020),
       lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: green,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: darkGreen,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (pickedDate != null) {
       setState(() {
@@ -225,11 +240,23 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
     }
   }
 
-  // Method for picking the time
   Future<void> _pickTime({required bool isStartTime}) async {
     final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
       initialTime: isStartTime ? _startTime : _endTime,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: green,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: darkGreen,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (pickedTime != null) {
       setState(() {
@@ -246,86 +273,100 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.schedule == null ? 'Create New Schedule' : 'Edit Schedule'),
+        title: Text(
+          widget.schedule == null ? 'Create New Schedule' : 'Edit Schedule',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: darkGreen,
+        elevation: 0,
       ),
-      body: Center(
-        child: Container(
-          width: MediaQuery.of(context).size.width * 0.9,
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16.0),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
-                spreadRadius: 5,
-                blurRadius: 7,
-                offset: Offset(0, 3),
-              ),
-            ],
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [lightGreen.withOpacity(0.2), Colors.white],
           ),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // City Dropdown
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'City',
-                    border: OutlineInputBorder(),
-                    filled: true,
-                    fillColor: Colors.grey[200],
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.9,
+              padding: const EdgeInsets.all(24.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.3),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: Offset(0, 3),
                   ),
-                  value: _selectedCity,
-                  items: _cities
-                      .map((city) => DropdownMenuItem(value: city, child: Text(city)))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedCity = value;
-                    });
-                  },
-                  validator: (value) => value == null ? 'Please select a city' : null,
+                ],
+              ),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.schedule == null ? 'Create New Schedule' : 'Edit Schedule',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: darkGreen,
+                      ),
+                    ),
+                    SizedBox(height: 24),
+                    _buildDropdown(
+                      label: 'City',
+                      value: _selectedCity,
+                      items: _cities,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedCity = value;
+                        });
+                      },
+                    ),
+                    SizedBox(height: 16),
+                    _buildDropdown(
+                      label: 'Waste Collector',
+                      value: _selectedCollector,
+                      items: _collectors,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedCollector = value;
+                          _collectorController.text = value ?? '';
+                        });
+                      },
+                    ),
+                    SizedBox(height: 24),
+                    _buildDateTimeRow('Start Time:', _startDate, _startTime, isStart: true),
+                    SizedBox(height: 16),
+                    _buildDateTimeRow('End Time:', _endDate, _endTime, isStart: false),
+                    SizedBox(height: 32),
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: _submit,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: green,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        child: Text(
+                          widget.schedule == null ? 'Create Schedule' : 'Update Schedule',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                
-                _textField('Vehicle Number:', _vehicleController),
-                const SizedBox(height: 8),
-
-                // Waste Collector Dropdown
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'Waste Collector',
-                    border: OutlineInputBorder(),
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                  ),
-                  value: _selectedCollector,
-                  items: _collectors
-                      .map((collector) => DropdownMenuItem(value: collector, child: Text(collector)))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedCollector = value; // Update selected waste collector
-                      _collectorController.text = value ?? ''; // Set text field as well
-                    });
-                  },
-                  validator: (value) => value == null ? 'Please select a waste collector' : null,
-                ),
-                const SizedBox(height: 16),
-
-                _dateTimeRow('Start Time:', _startDate, _startTime, isStart: true),
-                const SizedBox(height: 16),
-                _dateTimeRow('End Time:', _endDate, _endTime, isStart: false),
-                const SizedBox(height: 16),
-
-                ElevatedButton(
-                  onPressed: _submit,
-                  child: Text(widget.schedule == null ? 'Create Schedule' : 'Update Schedule'),
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -333,31 +374,75 @@ class _CreateSchedulePageState extends State<CreateSchedulePage> {
     );
   }
 
-  Widget _textField(String label, TextEditingController controller) {
-    return TextFormField(
-      controller: controller,
+  Widget _buildDropdown({
+    required String label,
+    required String? value,
+    required List<String> items,
+    required void Function(String?) onChanged,
+  }) {
+    return DropdownButtonFormField<String>(
       decoration: InputDecoration(
         labelText: label,
-        border: OutlineInputBorder(),
+        labelStyle: TextStyle(color: green),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: green),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: green),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: darkGreen, width: 2),
+        ),
         filled: true,
-        fillColor: Colors.grey[200],
+        fillColor: Colors.white,
       ),
-      validator: (value) => value!.isEmpty ? 'Please enter $label' : null,
+      value: value,
+      items: items.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
+      onChanged: onChanged,
+      validator: (value) => value == null ? 'Please select a $label' : null,
+      dropdownColor: Colors.white,
+      style: TextStyle(color: darkGreen),
+      icon: Icon(Icons.arrow_drop_down, color: green),
     );
   }
 
-  Widget _dateTimeRow(String label, DateTime date, TimeOfDay time, {required bool isStart}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildDateTimeRow(String label, DateTime date, TimeOfDay time, {required bool isStart}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label),
-        TextButton(
-          onPressed: () => _pickDate(isStartDate: isStart),
-          child: Text(DateFormat('yyyy-MM-dd').format(date)),
-        ),
-        TextButton(
-          onPressed: () => _pickTime(isStartTime: isStart),
-          child: Text(time.format(context)),
+        Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: darkGreen)),
+        SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => _pickDate(isStartDate: isStart),
+                icon: Icon(Icons.calendar_today, color: green),
+                label: Text(DateFormat('yyyy-MM-dd').format(date), style: TextStyle(color: darkGreen)),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: green),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+            SizedBox(width: 16),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => _pickTime(isStartTime: isStart),
+                icon: Icon(Icons.access_time, color: green),
+                label: Text(time.format(context), style: TextStyle(color: darkGreen)),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: green),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );

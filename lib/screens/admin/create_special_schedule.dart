@@ -21,7 +21,6 @@ class CreateSpecialSchedulePage extends StatefulWidget {
 }
 
 class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
-  final TextEditingController _vehicleController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   
@@ -56,62 +55,62 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
   }
 
   Future<void> _createSpecialSchedule() async {
-    if (!_formKey.currentState!.validate()) return;
+  if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
-    try {
-      await FirebaseFirestore.instance.collection('specialschedule').add({
-        'requestId': widget.requestId,
-        'city': widget.city,
-        'scheduledDate': widget.scheduledDate,
-        'address': widget.address,
-        'wasteTypes': widget.wasteTypes,
-        'wasteCollector': _selectedCollector, // Save the selected collector's name
-        'wasteCollectorId': _selectedCollectorId, // Save the selected collector's ID
-        'vehicleNumber': _vehicleController.text,
-        'status': 'schedule created',
-        'createdAt': DateTime.now(),
-      });
+  setState(() => _isLoading = true);
+  try {
+    await FirebaseFirestore.instance.collection('specialschedule').add({
+      'requestId': widget.requestId,
+      'city': widget.city,
+      'scheduledDate': widget.scheduledDate,
+      'address': widget.address, // Ensure this line is correct
+      'wasteTypes': widget.wasteTypes,
+      'wasteCollector': _selectedCollector, // Save the selected collector's name
+      'wasteCollectorId': _selectedCollectorId, // Save the selected collector's ID
+      'status': 'schedule created',
+      'createdAt': DateTime.now(),
+    });
 
-      // Update the status in the specialWasteRequests collection
-      await FirebaseFirestore.instance
-          .collection('specialWasteRequests')
-          .doc(widget.requestId)
-          .update({'status': 'schedule created'});
+    // Update the status in the specialWasteRequests collection
+    await FirebaseFirestore.instance
+        .collection('specialWasteRequests')
+        .doc(widget.requestId)
+        .update({'status': 'schedule created'});
 
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Schedule created successfully'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+    // Show success message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Schedule created successfully'),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
 
-      // Navigate back after schedule creation
-      Navigator.pop(context);
-    } catch (e) {
-      // Show error message in case of failure
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error creating schedule. Please try again.'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } finally {
-      setState(() => _isLoading = false);
-    }
+    // Navigate back after schedule creation
+    Navigator.pop(context);
+  } catch (e) {
+    // Show error message in case of failure
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error creating schedule. Please try again.'),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  } finally {
+    setState(() => _isLoading = false);
   }
+}
+
 
   Widget _buildInfoCard(String title, String value, IconData icon) {
     return Card(
-      elevation: 2,
+      elevation: 5,
       child: Padding(
         padding: EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(icon, color: Colors.blue, size: 24),
+            Icon(icon, color: Colors.green, size: 24),
             SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -144,9 +143,14 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.green[50],
       appBar: AppBar(
-        title: Text('Create Special Schedule'),
-        elevation: 0,
+        title: Text('Create Special Schedule',
+        style: TextStyle(
+                color: const Color.fromARGB(221, 255, 255, 255), fontWeight: FontWeight.bold)
+        ),
+        backgroundColor: Colors.green[800],
+        elevation: 5,
       ),
       body: SingleChildScrollView(
         child: SafeArea(
@@ -175,7 +179,7 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.delete_outline, color: Colors.blue),
+                              Icon(Icons.delete_outline, color: Colors.green),
                               SizedBox(width: 8),
                               Text(
                                 'Waste Types',
@@ -247,20 +251,6 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
                             ),
                           ),
                           SizedBox(height: 16),
-                          TextFormField(
-                            controller: _vehicleController,
-                            decoration: InputDecoration(
-                              labelText: 'Vehicle Number',
-                              prefixIcon: Icon(Icons.local_shipping),
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (value) {
-                              if (value?.isEmpty ?? true) {
-                                return 'Please enter vehicle number';
-                              }
-                              return null;
-                            },
-                          ),
                         ],
                       ),
                     ),
@@ -273,7 +263,7 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
                     onPressed: _isLoading ? null : _createSpecialSchedule,
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.blue,
+                      backgroundColor: Colors.green,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -283,11 +273,10 @@ class _CreateSpecialSchedulePageState extends State<CreateSpecialSchedulePage> {
                         : Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.schedule),
+                              Icon(Icons.schedule, color: Colors.white),
                               SizedBox(width: 8),
-                              Text(
-                                'Create Schedule',
-                                style: TextStyle(fontSize: 16),
+                              Text('Create Schedule',
+                                style: TextStyle(fontSize: 16, color: const Color.fromARGB(221, 255, 255, 255), fontWeight: FontWeight.bold)
                               ),
                             ],
                           ),

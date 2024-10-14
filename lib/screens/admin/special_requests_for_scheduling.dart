@@ -16,8 +16,8 @@ class _SpecialRequestsForSchedulingScreenState extends State<SpecialRequestsForS
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Special Waste Requests', style: TextStyle(color: Colors.black87)),
-        backgroundColor: Colors.white,
+        title: Text('Special Waste Requests', style: TextStyle(color: const Color.fromARGB(221, 255, 255, 255))),
+        backgroundColor: Colors.green[800],
         elevation: 0,
         iconTheme: IconThemeData(color: Colors.black87),
         actions: [
@@ -27,8 +27,8 @@ class _SpecialRequestsForSchedulingScreenState extends State<SpecialRequestsForS
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: CircleAvatar(
-              backgroundColor: Colors.purple[100],
-              child: Text('A', style: TextStyle(color: Colors.purple[800])),
+              backgroundColor: Colors.green[700],
+              child: Text('A', style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0))),
             ),
           ),
         ],
@@ -61,7 +61,8 @@ class _SpecialRequestsForSchedulingScreenState extends State<SpecialRequestsForS
                 margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 elevation: 3,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: Padding(
+                child: Container(
+                  decoration: BoxDecoration(color: Colors.green[50]),
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,8 +101,8 @@ class _SpecialRequestsForSchedulingScreenState extends State<SpecialRequestsForS
                           ),
                           Chip(
                             label: Text(status.toUpperCase()),
-                            backgroundColor: status == 'pending' ? Colors.orange[100] : Colors.green[100],
-                            labelStyle: TextStyle(color: status == 'pending' ? Colors.orange[800] : Colors.green[800]),
+                            backgroundColor: status == 'pending' ? Colors.green[200] : Colors.green[200],
+                            labelStyle: TextStyle(color: status == 'pending' ? Colors.red[800] : Colors.red[800]),
                           ),
                         ],
                       ),
@@ -140,7 +141,7 @@ class _SpecialRequestsForSchedulingScreenState extends State<SpecialRequestsForS
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.white, backgroundColor: Colors.blue[700],
+                            foregroundColor: Colors.white, backgroundColor: Colors.green[500],
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           ),
                         ),
@@ -179,7 +180,7 @@ class Sidebar extends StatelessWidget {
           Container(
             height: 200,
             decoration: BoxDecoration(
-              color: Colors.blue[700],
+              color: Colors.green[700],
             ),
             child: Stack(
               children: [
@@ -197,7 +198,7 @@ class Sidebar extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue[700],
+                            color: Colors.green[700],
                           ),
                         ),
                       ),
@@ -274,18 +275,18 @@ class Sidebar extends StatelessWidget {
     return ListTile(
       leading: Icon(
         icon,
-        color: isSelected ? Colors.blue[700] : Colors.grey[700],
+        color: isSelected ? Colors.green[700] : Colors.grey[700],
       ),
       title: Text(
         title,
         style: TextStyle(
-          color: isSelected ? Colors.blue[700] : Colors.grey[900],
+          color: isSelected ? Colors.green[700] : Colors.grey[900],
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         ),
       ),
       trailing: showTrailing ? Icon(Icons.chevron_right) : null,
       selected: isSelected,
-      selectedTileColor: Colors.blue[50],
+      selectedTileColor: Colors.green[50],
       onTap: onTap,
     );
   }

@@ -25,7 +25,6 @@ class _UpdateSpecialSchedulePageState extends State<UpdateSpecialSchedulePage> {
   void initState() {
     super.initState();
     // Initialize with current values
-    _vehicleController.text = widget.specialSchedule.vehicleNumber;
     _selectedCollector = widget.specialSchedule.wasteCollector;
     _selectedCollectorId = widget.specialSchedule.wasteCollectorId;
     // Fetch the collectors
@@ -63,7 +62,6 @@ class _UpdateSpecialSchedulePageState extends State<UpdateSpecialSchedulePage> {
           .collection('specialschedule')
           .doc(widget.specialSchedule.id)
           .update({
-        'vehicleNumber': _vehicleController.text,
         'wasteCollector': _selectedCollector, // Save selected collector's name
         'wasteCollectorId': _selectedCollectorId, // Save selected collector's ID
       });
@@ -97,7 +95,7 @@ class _UpdateSpecialSchedulePageState extends State<UpdateSpecialSchedulePage> {
         padding: EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(icon, color: Colors.blue, size: 24),
+            Icon(icon, color: Colors.green, size: 24),
             SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -124,9 +122,14 @@ class _UpdateSpecialSchedulePageState extends State<UpdateSpecialSchedulePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.green[50],
       appBar: AppBar(
-        title: Text('Update Special Schedule'),
-        elevation: 0,
+        title: Text('Update Special Schedule',
+        style: TextStyle(
+          color: const Color.fromARGB(221, 255, 255, 255), fontWeight: FontWeight.bold)
+        ),
+        backgroundColor: Colors.green[800],
+        elevation: 5,
       ),
       body: SingleChildScrollView(
         child: SafeArea(
@@ -155,7 +158,7 @@ class _UpdateSpecialSchedulePageState extends State<UpdateSpecialSchedulePage> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.delete_outline, color: Colors.blue),
+                              Icon(Icons.delete_outline, color: Colors.green),
                               SizedBox(width: 8),
                               Text(
                                 'Waste Types',
@@ -224,20 +227,6 @@ class _UpdateSpecialSchedulePageState extends State<UpdateSpecialSchedulePage> {
                             ),
                           ),
                           SizedBox(height: 16),
-                          TextFormField(
-                            controller: _vehicleController,
-                            decoration: InputDecoration(
-                              labelText: 'Vehicle Number',
-                              prefixIcon: Icon(Icons.local_shipping),
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (value) {
-                              if (value?.isEmpty ?? true) {
-                                return 'Please enter vehicle number';
-                              }
-                              return null;
-                            },
-                          ),
                         ],
                       ),
                     ),
@@ -250,7 +239,7 @@ class _UpdateSpecialSchedulePageState extends State<UpdateSpecialSchedulePage> {
                     onPressed: _isLoading ? null : _updateSpecialSchedule,
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.blue,
+                      backgroundColor: Colors.green,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -260,11 +249,11 @@ class _UpdateSpecialSchedulePageState extends State<UpdateSpecialSchedulePage> {
                         : Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.update),
+                              Icon(Icons.update,color:Colors.white),
                               SizedBox(width: 8),
                               Text(
                                 'Update Schedule',
-                                style: TextStyle(fontSize: 16),
+                                style: TextStyle(fontSize: 16,color: const Color.fromARGB(221, 255, 255, 255), fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),

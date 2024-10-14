@@ -8,7 +8,6 @@ import '../screens/admin/confirm_bin_screen.dart';
 import '../screens/admin/waste_collection_requests_screen.dart';
 import '../screens/admin/view_special_requests_screen.dart';
 import '../screens/admin/waste_collection_schedule.dart';
-import '../screens/admin/route_schedule_selection.dart';
 import '../../models/schedule_model.dart';
 import '../screens/profile/profile_screen.dart'; 
 
@@ -149,18 +148,7 @@ class _AdminHomeScreenState extends State<HomeScreen> {
               title: 'Route Monitoring',
               description: 'Monitor Waste Collection Routes',
               onTap: () async {
-                Schedule? schedule = await _fetchSchedule();
-                if (schedule != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => ScheduleListScreen()),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('No schedules found')),
-                  );
-                }
+                
               },
             ),
           ],

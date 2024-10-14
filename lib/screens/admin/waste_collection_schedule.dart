@@ -46,12 +46,13 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.green[20],
       appBar: AppBar(
         title: Text('Waste Collection Schedule',
             style: TextStyle(
-                color: Colors.black87, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
+                color: const Color.fromARGB(221, 255, 255, 255), fontWeight: FontWeight.bold)
+                ),
+        backgroundColor: Colors.green[800],
         elevation: 0,
         iconTheme: IconThemeData(color: Colors.black87),
         actions: [
@@ -61,8 +62,8 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: CircleAvatar(
-              backgroundColor: Colors.blue[700],
-              child: Text('A', style: TextStyle(color: Colors.white)),
+              backgroundColor: Colors.green[700],
+              child: Text('A', style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0))),
             ),
           ),
         ],
@@ -112,9 +113,11 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
             MaterialPageRoute(builder: (context) => CreateSchedulePage()),
           );
         },
-        icon: Icon(Icons.add),
-        label: Text('Create Schedule'),
-        backgroundColor: Colors.blue[700],
+        icon: Icon(Icons.add, color: Colors.white),
+        label: Text('Create Schedule',
+          style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold)
+        ),
+        backgroundColor: Colors.green[600],
       ),
     );
   }
@@ -122,7 +125,7 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
   Widget _buildHeader() {
     return Container(
       padding: EdgeInsets.all(16),
-      color: Colors.white,
+      color: Colors.green[100],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -134,10 +137,10 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
               ),
               SizedBox(width: 8),
               TextButton.icon(
-                icon: Icon(Icons.arrow_drop_down, color: Colors.blue[700]),
+                icon: Icon(Icons.arrow_drop_down, color: Colors.green[700]),
                 label: Text(selectedMonth,
                     style: TextStyle(
-                        color: Colors.blue[700],
+                        color: Colors.green[700],
                         fontWeight: FontWeight.bold)),
                 onPressed: () {
                   // Show month selector
@@ -166,7 +169,7 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
       child: Text(label),
       style: ElevatedButton.styleFrom(
         foregroundColor: isSelected ? Colors.white : Colors.black87,
-        backgroundColor: isSelected ? Colors.blue[700] : Colors.grey[200],
+        backgroundColor: isSelected ? Colors.green[700] : Colors.grey[200],
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       ),
@@ -191,21 +194,21 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
-                      color: Colors.blue[700],
+                      color: Colors.green[700],
                     ),
                   ),
                   SizedBox(width: 8),
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.blue[50],
+                      color: Colors.green[50],
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
                       '${schedules.length} Schedules',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.blue[700],
+                        color: Colors.green[700],
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -286,13 +289,11 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    Icon(Icons.share, size: 18, color: Colors.blue[700]),
+                    Icon(Icons.share, size: 18, color: Colors.green),
                   ],
                 ),
                 SizedBox(height: 8),
                 _buildInfoRow(Icons.access_time, getDuration(schedule)),
-                SizedBox(height: 4),
-                _buildInfoRow(Icons.local_shipping, schedule.vehicleNumber),
                 SizedBox(height: 4),
                 _buildInfoRow(Icons.person_outline, schedule.wasteCollector),
                 SizedBox(height: 4),
@@ -355,7 +356,7 @@ class Sidebar extends StatelessWidget {
           Container(
             height: 200,
             decoration: BoxDecoration(
-              color: Colors.blue[700],
+              color:Color(0xFF4CAF50),
             ),
             child: Stack(
               children: [
@@ -373,7 +374,7 @@ class Sidebar extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue[700],
+                            color: Color(0xFF4CAF50),
                           ),
                         ),
                       ),
@@ -450,12 +451,12 @@ class Sidebar extends StatelessWidget {
     return ListTile(
       leading: Icon(
         icon,
-        color: isSelected ? Colors.blue[700] : Colors.grey[700],
+        color: isSelected ? Color(0xFF4CAF50) : Colors.grey[700],
       ),
       title: Text(
         title,
         style: TextStyle(
-          color: isSelected ? Colors.blue[700] : Colors.grey[900],
+          color: isSelected ? Colors.green[600] : Colors.grey[900],
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         ),
       ),
