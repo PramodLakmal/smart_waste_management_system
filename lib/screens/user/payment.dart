@@ -15,18 +15,18 @@ class _PaymentState extends State<Payment> {
   double totalCoins = 0.0;
   double totalElectricalWeight = 0.0;
   double totalOtherWeight = 0.0;
-  double grandTotal = 0.0; // To hold the grand total after applying coins
-  double discountFromCoins = 0.0; // Discount you get from coins
-  double netAmount = 0.0; // Net amount after using coins or not
-  bool usedCoins = false; // Tracks if user used coins or not
-  double remainingCoins = 0.0; // To track coins after deduction for payment
+  double grandTotal = 0.0;
+  double discountFromCoins = 0.0;
+  double netAmount = 0.0;
+  bool usedCoins = false;
+  double remainingCoins = 0.0;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   void initState() {
     super.initState();
     calculateTotalAmount();
-    fetchCurrentCoins(); // Fetch current coins on initialization
+    fetchCurrentCoins();
   }
 
   Future<void> fetchCurrentCoins() async {
@@ -38,23 +38,17 @@ class _PaymentState extends State<Payment> {
           .doc(userId)
           .get();
 
-      // Initialize totalCoins with the value from Firestore
       if (coinsDoc.exists) {
         setState(() {
-          totalCoins = coinsDoc['totalCoins'] ?? 0.0;
+          totalCoins = (coinsDoc['totalCoins'] ?? 0.0).toDouble();
         });
       }
     }
   }
 
   Future<void> calculateTotalAmount() async {
-    // Calculate coins from wasteCollectionTotals
     double coinsFromCollectionTotals = await calculateWasteCollectionTotals();
-
-    // Pass the coins to calculateSpecialWasteTotals
     await calculateSpecialWasteTotals(coinsFromCollectionTotals);
-
-    // By default, set net amount as totalPayment (when no coins are used)
     setState(() {
       netAmount = totalPayment;
     });
@@ -74,7 +68,7 @@ class _PaymentState extends State<Payment> {
           .get();
 
       double otherWasteTotal = 0.0;
-      double electricalWasteCoins = 0.0; // Coins earned from electrical waste
+      double electricalWasteCoins = 0.0;
 
       for (var requestDoc in wasteCollectionRequests.docs) {
         var requestData = requestDoc.data() as Map<String, dynamic>;
@@ -87,26 +81,25 @@ class _PaymentState extends State<Payment> {
 
         if (binDoc.exists) {
           var binData = binDoc.data() as Map<String, dynamic>;
-          String type = binData['type'];
-          double weight = binData['weight'];
+          String type = binData['type'] ?? '';
+          double weight = (binData['weight'] ?? 0.0).toDouble();
 
           if (type == 'Electrical Waste') {
-            electricalWasteCoins += weight; // 1 coin per kg of electrical waste
-            totalElectricalWeight += weight; // Update total electrical weight
+            electricalWasteCoins += weight;
+            totalElectricalWeight += weight;
           } else {
             double amount = weight * 2;
             otherWasteTotal += amount;
-            totalOtherWeight += weight; // Update total other weight
+            totalOtherWeight += weight;
           }
         }
       }
 
-      // Update totalPayment with the total for non-electrical waste
       setState(() {
         totalPayment += otherWasteTotal;
       });
 
-      return electricalWasteCoins; // Return coins earned from this method
+      return electricalWasteCoins;
     } catch (e) {
       print('Error calculating waste collection totals: $e');
       return 0.0;
@@ -130,28 +123,24 @@ class _PaymentState extends State<Payment> {
 
       for (var requestDoc in specialWasteRequests.docs) {
         var requestData = requestDoc.data() as Map<String, dynamic>;
-        List<dynamic> wasteTypes = requestData['wasteTypes'];
+        List<dynamic> wasteTypes = requestData['wasteTypes'] ?? [];
 
         for (var wasteType in wasteTypes) {
-          String type = wasteType['type'];
-          double weight = wasteType['weight'];
+          String type = wasteType['type'] ?? '';
+          double weight = (wasteType['weight'] ?? 0.0).toDouble();
 
           if (type == 'Electrical Waste') {
-            electricalWasteCoins += weight; // 1 coin per kg of electrical waste
-            totalElectricalWeight += weight; // Update total electrical weight
+            electricalWasteCoins += weight;
+            totalElectricalWeight += weight;
           } else {
-            totalOtherWeight +=
-                weight; // Update total other weight for non-electrical waste
-            totalPayment +=
-                weight * 2; // Only accumulate payment for other waste
+            totalOtherWeight += weight;
+            totalPayment += weight * 2;
           }
         }
       }
 
-      // Add coins from wasteCollectionTotals
       electricalWasteCoins += coinsFromCollectionTotals;
 
-      // Only update totalCoins with electrical waste coins
       if (electricalWasteCoins > 0) {
         DocumentSnapshot balanceDoc = await FirebaseFirestore.instance
             .collection('balance')
@@ -159,13 +148,13 @@ class _PaymentState extends State<Payment> {
             .get();
 
         double leftCoins =
-            balanceDoc.exists ? balanceDoc['leftCoins'] ?? 0.0 : 0.0;
+            (balanceDoc.exists ? balanceDoc['leftCoins'] ?? 0.0 : 0.0)
+                .toDouble();
 
-        // Calculate the new total coins
-        totalCoins =
-            leftCoins + electricalWasteCoins; // Add coins from both sources
+        setState(() {
+          totalCoins = leftCoins + electricalWasteCoins;
+        });
 
-        // Store the new total in Firestore
         await updateCoinsInFirestore(userId, totalCoins);
       }
     } catch (e) {
@@ -182,13 +171,11 @@ class _PaymentState extends State<Payment> {
           .get();
 
       if (coinsDoc.exists) {
-        // Update the totalCoins in Firestore with the updatedCoins value
         await FirebaseFirestore.instance
             .collection('coins')
             .doc(userId)
             .update({'totalCoins': updatedCoins});
       } else {
-        // If the document does not exist, create it with the updated coins
         await FirebaseFirestore.instance.collection('coins').doc(userId).set({
           'totalCoins': updatedCoins,
         });
@@ -199,46 +186,37 @@ class _PaymentState extends State<Payment> {
   }
 
   Future<void> proceedToPay() async {
-    if (totalPayment <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No payments yet.')),
-      );
-      return;
-    }
+    // Removed the early return for netAmount <= 0
+    // Now, netAmount can be zero and still proceed with payment
 
     try {
       User? currentUser = _auth.currentUser;
       if (currentUser == null) return;
       String userId = currentUser.uid;
 
-      // Store payment details in Firestore
       await FirebaseFirestore.instance.collection('payments').add({
         'userId': userId,
-        'totalPayment': netAmount, // Use netAmount if coins are applied
+        'totalPayment': netAmount,
         'electricalWasteWeight': totalElectricalWeight,
         'otherWasteWeight': totalOtherWeight,
         'timestamp': Timestamp.now(),
       });
 
-      // Update the payment status of related waste requests
       await updatePaymentStatus('wasteCollectionRequests', userId);
       await updatePaymentStatus('specialWasteRequests', userId);
 
-      // Update remaining coins in Firestore after successful payment
       if (usedCoins) {
         await updateCoinsInFirestore(userId, remainingCoins);
       }
 
-      // Transfer remaining coins to balance collection
       await transferRemainingCoinsToBalance(userId);
 
-      // Reset the UI state
       setState(() {
         totalPayment = 0.0;
         totalElectricalWeight = 0.0;
         totalOtherWeight = 0.0;
         if (!usedCoins) {
-          totalCoins = 0.0; // Reset coins in UI only if coins weren't used
+          totalCoins = 0.0;
         } else {
           discountFromCoins = 0.0;
           netAmount = 0.0;
@@ -301,17 +279,13 @@ class _PaymentState extends State<Payment> {
     }
   }
 
-  // New method to handle coin usage confirmation without updating Firestore
   void useCoins() async {
-    double coinsValue = totalCoins * 0.5; // Each coin is worth $0.5
-    double maximumDiscount = totalPayment < coinsValue
-        ? totalPayment
-        : coinsValue; // Cap discount to total payment
+    double coinsValue = totalCoins * 0.5;
+    double maximumDiscount =
+        totalPayment < coinsValue ? totalPayment : coinsValue;
     discountFromCoins = maximumDiscount;
-    remainingCoins = (totalCoins) -
-        discountFromCoins * 2; // Calculate remaining coins after usage
+    remainingCoins = totalCoins - (discountFromCoins * 2);
 
-    // Show confirmation dialog before proceeding
     final confirm = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -335,184 +309,255 @@ class _PaymentState extends State<Payment> {
 
     if (confirm == true) {
       setState(() {
-        // Apply maximum discount to net amount
         netAmount = totalPayment - maximumDiscount;
         usedCoins = true;
+        totalCoins = remainingCoins; // Update totalCoins to reflect deduction
       });
 
-      proceedToPay(); // Proceed with the payment after confirmation
+      // Check if netAmount is zero, then auto proceed to pay
+      if (netAmount == 0.0) {
+        await proceedToPay();
+      }
+      // Else, allow user to manually proceed to pay
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Determine screen size for responsiveness
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text('Payment'),
-        backgroundColor: Colors.teal, // Enhanced AppBar color
+        title: Text('Payment',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+        backgroundColor: Colors.teal,
+        elevation: 0,
         centerTitle: true,
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          // Determine if the screen is wide (web) or narrow (mobile)
-          bool isWideScreen = constraints.maxWidth > 600;
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildTotalPaymentCard(),
+              const SizedBox(height: 20),
+              _buildInfoCards(),
+              const SizedBox(height: 20),
+              if (usedCoins) _buildDiscountCard(),
+              const SizedBox(height: 20),
+              _buildNetAmountCard(),
+              const SizedBox(height: 30),
+              _buildActionButtons(),
+              if (usedCoins) const SizedBox(height: 20),
+              if (usedCoins) _buildRemainingCoinsCard(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-          return SingleChildScrollView(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Grid for Info Cards
-                    GridView(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: isWideScreen ? 3 : 1,
-                        crossAxisSpacing: 16.0,
-                        mainAxisSpacing: 16.0,
-                        childAspectRatio: isWideScreen ? 1.5 : 3,
-                      ),
-                      children: [
-                        // First Row: Total Payment (spans all columns on wide screens)
-                        if (isWideScreen)
-                          InfoCard(
-                            icon: Icons.attach_money,
-                            label: 'Total Payment',
-                            value: '\$${totalPayment.toStringAsFixed(2)}',
-                            color: Colors.teal,
-                            span: 3, // Span all three columns
-                          ),
-                        if (!isWideScreen)
-                          InfoCard(
-                            icon: Icons.attach_money,
-                            label: 'Total Payment',
-                            value: '\$${totalPayment.toStringAsFixed(2)}',
-                            color: Colors.teal,
-                          ),
-                        // Second Row: Three Cards
-                        InfoCard(
-                          icon: Icons.electrical_services,
-                          label: 'Electrical Waste Weight',
-                          value:
-                              '${totalElectricalWeight.toStringAsFixed(2)} kg',
-                          color: Colors.orange,
-                        ),
-                        InfoCard(
-                          icon: Icons.recycling,
-                          label: 'Other Waste Weight',
-                          value: '${totalOtherWeight.toStringAsFixed(2)} kg',
-                          color: Colors.green,
-                        ),
-                        InfoCard(
-                          icon: Icons.monetization_on,
-                          label: 'Total Coins',
-                          value: '${totalCoins.toStringAsFixed(0)}',
-                          color: Colors.purple,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 30),
-                    // Conditional Discount from Coins Card
-                    if (usedCoins)
-                      InfoCard(
-                        icon: Icons.discount,
-                        label: 'Discount from Coins',
-                        value: '-\$${discountFromCoins.toStringAsFixed(2)}',
-                        color: Colors.redAccent,
-                      ),
-                    if (usedCoins) const SizedBox(height: 15),
-                    // Net Amount Card
-                    InfoCard(
-                      icon: Icons.account_balance_wallet,
-                      label: 'Net Amount',
-                      value: usedCoins
-                          ? '\$${netAmount.toStringAsFixed(2)}'
-                          : '\$${totalPayment.toStringAsFixed(2)}',
-                      color: Colors.blue,
-                    ),
-                    const SizedBox(height: 30),
-                    // Action Buttons
-                    Column(
-                      children: [
-                        // Use Coins Button
-                        ElevatedButton.icon(
-                          onPressed: totalCoins > 0 ? useCoins : null,
-                          icon: const Icon(Icons.credit_score),
-                          label: const Text('Use Coins for Discounts'),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 15),
-                            textStyle: GoogleFonts.poppins(
-                                fontSize: 16, fontWeight: FontWeight.w600),
-                            backgroundColor: Colors.teal, // Button color
-                            foregroundColor: Colors.white, // Text color
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            elevation: 5,
-                          ),
-                        ),
-                        const SizedBox(height: 15),
-                        // Proceed to Pay Button
-                        ElevatedButton.icon(
-                          onPressed: proceedToPay,
-                          icon: const Icon(Icons.payment),
-                          label: const Text('Proceed to Pay'),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 15),
-                            textStyle: GoogleFonts.poppins(
-                                fontSize: 16, fontWeight: FontWeight.w600),
-                            backgroundColor: Colors.orange, // Button color
-                            foregroundColor: Colors.white, // Text color
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            elevation: 5,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 30),
-                    // Optional: Display remaining coins after usage
-                    if (usedCoins)
-                      Card(
-                        color: Colors.grey[100],
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(15.0),
-                          child: Text(
-                            'Remaining Coins: ${(remainingCoins).toStringAsFixed(0)}',
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              color: Colors.black87,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+  Widget _buildTotalPaymentCard() {
+    return Card(
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Text(
+              'Total Payment',
+              style: GoogleFonts.poppins(fontSize: 18, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              '\$${totalPayment.toStringAsFixed(2)}',
+              style: GoogleFonts.poppins(
+                fontSize: 36,
+                fontWeight: FontWeight.bold,
+                color: Colors.teal,
               ),
             ),
-          );
-        },
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoCards() {
+    return GridView.count(
+      crossAxisCount: 2,
+      crossAxisSpacing: 10,
+      mainAxisSpacing: 10,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      children: [
+        _buildInfoCard(
+            'Electrical Waste',
+            '${totalElectricalWeight.toStringAsFixed(2)} kg',
+            Icons.electrical_services,
+            Colors.orange),
+        _buildInfoCard(
+            'Other Waste',
+            '${totalOtherWeight.toStringAsFixed(2)} kg',
+            Icons.delete_outline,
+            Colors.green),
+        _buildInfoCard('Total Coins', totalCoins.toStringAsFixed(0),
+            Icons.monetization_on, Colors.purple),
+        _buildInfoCard('Net Amount', '\$${netAmount.toStringAsFixed(2)}',
+            Icons.account_balance_wallet, Colors.blue),
+      ],
+    );
+  }
+
+  Widget _buildInfoCard(
+      String title, String value, IconData icon, Color color) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 30, color: color),
+            const SizedBox(height: 10),
+            Text(title,
+                style:
+                    GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600])),
+            const SizedBox(height: 5),
+            Text(value,
+                style: GoogleFonts.poppins(
+                    fontSize: 18, fontWeight: FontWeight.bold)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDiscountCard() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      color: Colors.redAccent,
+      child: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Discount from Coins',
+                style: GoogleFonts.poppins(fontSize: 16, color: Colors.white)),
+            Text('-\$${discountFromCoins.toStringAsFixed(2)}',
+                style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNetAmountCard() {
+    return Card(
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      color: Colors.blue,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Text(
+              'Net Amount',
+              style: GoogleFonts.poppins(fontSize: 18, color: Colors.white),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              '\$${(usedCoins ? netAmount : totalPayment).toStringAsFixed(2)}',
+              style: GoogleFonts.poppins(
+                fontSize: 36,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Column(
+      children: [
+        ElevatedButton.icon(
+          onPressed: totalCoins > 0 ? useCoins : null,
+          icon: const Icon(Icons.credit_score),
+          label: const Text('Use Coins for Discounts'),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+            textStyle:
+                GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
+            backgroundColor: Colors.teal,
+            foregroundColor: Colors.white,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            elevation: 5,
+          ),
+        ),
+        const SizedBox(height: 15),
+        ElevatedButton.icon(
+          onPressed: proceedToPay,
+          icon: const Icon(Icons.payment),
+          label: const Text('Proceed to Pay'),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+            textStyle:
+                GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
+            backgroundColor: Colors.orange,
+            foregroundColor: Colors.white,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            elevation: 5,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRemainingCoinsCard() {
+    return Card(
+      color: Colors.grey[200],
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: Padding(
+        padding: const EdgeInsets.all(15.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Remaining Coins:',
+              style: GoogleFonts.poppins(fontSize: 16, color: Colors.black87),
+            ),
+            Text(
+              remainingCoins.toStringAsFixed(0),
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.purple,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-// Custom widget for displaying information cards with icons
 class InfoCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
   final Color color;
-  final int span; // Number of columns to span (default is 1)
 
   const InfoCard({
     Key? key,
@@ -520,52 +565,34 @@ class InfoCard extends StatelessWidget {
     required this.label,
     required this.value,
     required this.color,
-    this.span = 1,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Adjust the card's height based on the content
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Row(
+        padding: const EdgeInsets.all(15.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Icon with color
-            Icon(
-              icon,
-              color: color,
-              size: 28,
+            Icon(icon, size: 30, color: color),
+            const SizedBox(height: 10),
+            Text(
+              label,
+              style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[700]),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(width: 15),
-            // Label and Value
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    value,
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ],
+            const SizedBox(height: 5),
+            Text(
+              value,
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
