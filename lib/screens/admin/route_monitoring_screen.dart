@@ -10,7 +10,7 @@ class BinIdsScreen extends StatefulWidget {
   BinIdsScreen({
     required this.binIds,
     required this.wasteCollectorId,
-    required this.wasteCollector,
+    required this.wasteCollector, String? scheduleId,
   });
 
   @override

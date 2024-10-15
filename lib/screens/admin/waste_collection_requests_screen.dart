@@ -1,9 +1,18 @@
+// lib/waste_collection_requests_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class WasteCollectionRequestsScreen extends StatefulWidget {
+  final FirebaseFirestore firestore;
+
+  WasteCollectionRequestsScreen({Key? key, FirebaseFirestore? firestore})
+      : firestore = firestore ?? FirebaseFirestore.instance,
+        super(key: key);
+
   @override
-  _WasteCollectionRequestsScreenState createState() => _WasteCollectionRequestsScreenState();
+  _WasteCollectionRequestsScreenState createState() =>
+      _WasteCollectionRequestsScreenState();
 }
 
 class _WasteCollectionRequestsScreenState extends State<WasteCollectionRequestsScreen> {
@@ -11,7 +20,7 @@ class _WasteCollectionRequestsScreenState extends State<WasteCollectionRequestsS
 
   // Fetch waste collection requests
   Stream<QuerySnapshot> _fetchRequests() {
-    return FirebaseFirestore.instance
+    return widget.firestore
         .collection('wasteCollectionRequests')
         .where('isCollected', isEqualTo: _showCollected)
         .snapshots();
@@ -19,7 +28,7 @@ class _WasteCollectionRequestsScreenState extends State<WasteCollectionRequestsS
 
   // Fetch user details by userId
   Future<Map<String, dynamic>?> _fetchUserDetails(String userId) async {
-    DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    DocumentSnapshot userDoc = await widget.firestore.collection('users').doc(userId).get();
     if (userDoc.exists) {
       return userDoc.data() as Map<String, dynamic>?;
     }
@@ -28,7 +37,7 @@ class _WasteCollectionRequestsScreenState extends State<WasteCollectionRequestsS
 
   // Fetch bin details by binId
   Future<Map<String, dynamic>?> _fetchBinDetails(String binId) async {
-    DocumentSnapshot binDoc = await FirebaseFirestore.instance.collection('bins').doc(binId).get();
+    DocumentSnapshot binDoc = await widget.firestore.collection('bins').doc(binId).get();
     if (binDoc.exists) {
       return binDoc.data() as Map<String, dynamic>?;
     }
@@ -39,12 +48,12 @@ class _WasteCollectionRequestsScreenState extends State<WasteCollectionRequestsS
   Future<void> _markAsCollected(String requestId, String binId) async {
     try {
       // Update waste collection request to mark as collected
-      await FirebaseFirestore.instance.collection('wasteCollectionRequests').doc(requestId).update({
+      await widget.firestore.collection('wasteCollectionRequests').doc(requestId).update({
         'isCollected': true,
       });
 
       // Update the bin: set collectionRequestSent to false and filledPercentage to 0
-      await FirebaseFirestore.instance.collection('bins').doc(binId).update({
+      await widget.firestore.collection('bins').doc(binId).update({
         'collectionRequestSent': false,
         'filledPercentage': 0,
       });
@@ -101,8 +110,8 @@ class _WasteCollectionRequestsScreenState extends State<WasteCollectionRequestsS
 
               return FutureBuilder<Map<String, dynamic>?>(
                 future: Future.wait([
-                  _fetchUserDetails(userId), // Fetch user details
-                  _fetchBinDetails(binId)    // Fetch bin details
+                  _fetchUserDetails(userId),
+                  _fetchBinDetails(binId)
                 ]).then((responses) => {
                       'user': responses[0],
                       'bin': responses[1],
