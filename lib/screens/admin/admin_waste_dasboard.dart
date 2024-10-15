@@ -8,6 +8,7 @@ class AdminWasteDashboard extends StatefulWidget {
   const AdminWasteDashboard({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _AdminWasteDashboardState createState() => _AdminWasteDashboardState();
 }
 
@@ -84,7 +85,7 @@ class _AdminWasteDashboardState extends State<AdminWasteDashboard>
         );
       },
       backgroundColor: primaryColor,
-      child: Icon(Icons.add),
+      child: Icon(Icons.add, color: Colors.white,),
     ),
     );
   }
@@ -153,16 +154,23 @@ class WasteListView extends StatelessWidget {
             double totalWeight = totals[collectorId]['totalWeight'];
 
             return Card(
+              shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16), // Add rounded corners to the Card
+              ),
               margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: cardColor,
               elevation: 4,
               child: ExpansionTile(
+                backgroundColor: primaryColor,
+                iconColor: Colors.white,  // Change the color of the arrow (caret) here
+                collapsedIconColor: Colors.white,  // Optional: Color of the arrow when collapsed
                 title: Text(
                   collectorName,
-                  style: TextStyle(fontWeight: FontWeight.bold, color: primaryColor),
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 subtitle: Text(
                   'Total Waste: ${totalWeight.toStringAsFixed(2)} kg',
-                  style: TextStyle(color: cardColor),
+                  style: TextStyle(color: Colors.grey[100]),
                 ),
                 children: [
                   StreamBuilder<QuerySnapshot>(
@@ -205,12 +213,12 @@ class WasteListView extends StatelessWidget {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(wasteType, style: TextStyle(fontWeight: FontWeight.bold, color: primaryColor)),
+                                      Text(wasteType, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey[100])),
                                       SizedBox(height: 4),
-                                      Text('${weight.toStringAsFixed(2)} kg', style: TextStyle(color: secondaryColor)),
+                                      Text('${weight.toStringAsFixed(2)} kg', style: TextStyle(color: Colors.grey[200])),
                                       Text(
                                         'Collected: ${DateFormat('MMM d, yyyy HH:mm').format(collectedTime.toDate())}',
-                                        style: TextStyle(color: secondaryColor, fontSize: 12),
+                                        style: TextStyle(color: Colors.grey[200], fontSize: 12),
                                       ),
                                     ],
                                   ),
@@ -315,15 +323,16 @@ class VehicleTrackingView extends StatelessWidget {
             return Card(
               margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               elevation: 4,
+              color: cardColor,
               child: ListTile(
-                leading: Icon(Icons.local_shipping, color: primaryColor),
-                title: Text('Vehicle ID: $vehicleId', style: TextStyle(fontWeight: FontWeight.bold, color: primaryColor)),
+                leading: Icon(Icons.local_shipping, color: Colors.white),
+                title: Text('Vehicle ID: $vehicleId', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Driver: $driverName', style: TextStyle(color: secondaryColor)),
-                    Text('Status: $status', style: TextStyle(color: secondaryColor)),
-                    Text('Location: Lat: ${location.latitude}, Lng: ${location.longitude}', style: TextStyle(color: secondaryColor, fontSize: 12)),
+                    Text('Driver: $driverName', style: TextStyle(color: Colors.grey[100])),
+                    Text('Status: $status', style: TextStyle(color: Colors.grey[100])),
+                    Text('Location: Lat: ${location.latitude}, Lng: ${location.longitude}', style: TextStyle(color: Colors.grey[100], fontSize: 12)),
                   ],
                 ),
               ),
