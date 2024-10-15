@@ -33,7 +33,7 @@ class WasteService {
       });
     } catch (e) {
       print('Error adding waste record: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -43,7 +43,7 @@ class WasteService {
       await wasteRecordsCollection.doc(id).update({'status': status});
     } catch (e) {
       print('Error updating waste record status: $e');
-      throw e;
+      rethrow;
     }
   }
 

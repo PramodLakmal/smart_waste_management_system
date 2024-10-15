@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
+  
+  const LoginScreen({super.key});
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -162,7 +165,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               child: Text(
                                 'Login',
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.white),
+                                style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white),
                               ),
                             ),
                             SizedBox(height: 16),

@@ -20,8 +20,11 @@ class CompletedSchedulesPage extends StatelessWidget {
   final Color accentColor = Colors.red[100]!;
   final Color cardColor = Color(0xFF81C784);
 
+  CompletedSchedulesPage({super.key});
+
   @override
   Widget build(BuildContext context) {
+    final FirebaseAuth auth = FirebaseAuth.instance;
     final User? currentUser = auth.currentUser;
     if (currentUser == null) {
       return Scaffold(

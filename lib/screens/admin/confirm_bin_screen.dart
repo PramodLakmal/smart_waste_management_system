@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ConfirmBinScreen extends StatefulWidget {
+  const ConfirmBinScreen({super.key});
+
   @override
   _ConfirmBinScreenState createState() => _ConfirmBinScreenState();
 }

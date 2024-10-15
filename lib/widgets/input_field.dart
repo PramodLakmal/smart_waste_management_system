@@ -5,7 +5,7 @@ class InputField extends StatelessWidget {
   final String hintText;
   final bool obscureText;
 
-  InputField({required this.controller, required this.hintText, this.obscureText = false});
+  const InputField({super.key, required this.controller, required this.hintText, this.obscureText = false});
 
   @override
   Widget build(BuildContext context) {

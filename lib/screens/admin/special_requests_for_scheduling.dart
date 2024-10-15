@@ -7,6 +7,8 @@ import 'package:smart_waste_management_system/screens/admin/waste_collection_sch
 import 'package:smart_waste_management_system/screens/home_screen.dart';
 
 class SpecialRequestsForSchedulingScreen extends StatefulWidget {
+  const SpecialRequestsForSchedulingScreen({super.key});
+
   @override
   _SpecialRequestsForSchedulingScreenState createState() => _SpecialRequestsForSchedulingScreenState();
 }
@@ -53,16 +55,15 @@ class _SpecialRequestsForSchedulingScreenState extends State<SpecialRequestsForS
             itemBuilder: (context, index) {
               var request = requests[index];
               String status = request['status'];
-              String requestId = request.id;
               String userId = request['userId'];
               List wasteTypes = request['wasteTypes'];
 
               return Card(
                 margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                elevation: 3,
+                elevation: 5,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 child: Container(
-                  decoration: BoxDecoration(color: Colors.green[50]),
+                  decoration: BoxDecoration(color: Colors.green[100]),
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,7 +121,7 @@ class _SpecialRequestsForSchedulingScreenState extends State<SpecialRequestsForS
                             Text('${waste['type']} - ${waste['weight']} kg', style: TextStyle(fontSize: 15)),
                           ],
                         ),
-                      )).toList(),
+                      )),
                       SizedBox(height: 16),
                       if (status != 'schedule created')
                         ElevatedButton.icon(
@@ -172,6 +173,8 @@ class _SpecialRequestsForSchedulingScreenState extends State<SpecialRequestsForS
 }
 // Sidebar widget
 class Sidebar extends StatelessWidget {
+  const Sidebar({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Drawer(

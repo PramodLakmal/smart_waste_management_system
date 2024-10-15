@@ -8,12 +8,12 @@ import 'package:smart_waste_management_system/screens/home_screen.dart';
 import '../../models/special_schedule_model.dart';
 
 class SpecialWasteCollectionSchedule extends StatelessWidget {
-  const SpecialWasteCollectionSchedule({Key? key}) : super(key: key);
+  const SpecialWasteCollectionSchedule({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green[100],
+      backgroundColor: Colors.white,
       appBar: _buildAppBar(context),
       drawer: Sidebar(),
       body: StreamBuilder<QuerySnapshot>(
@@ -32,7 +32,7 @@ class SpecialWasteCollectionSchedule extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.schedule_outlined, size: 64, color: Colors.grey[400]),
+                  Icon(Icons.schedule_outlined, size: 64, color: const Color.fromARGB(255, 0, 0, 0)),
                   SizedBox(height: 16),
                   Text(
                     'No Special Schedules Found',
@@ -110,7 +110,8 @@ class SpecialWasteCollectionSchedule extends StatelessWidget {
   Widget _buildScheduleCard(BuildContext context, SpecialSchedule schedule) {
     return Card(
       margin: EdgeInsets.only(bottom: 16),
-      elevation: 2,
+      color: Colors.green[100],
+      elevation: 5,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -216,7 +217,7 @@ class SpecialWasteCollectionSchedule extends StatelessWidget {
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: Colors.grey[600]),
+        Icon(icon, size: 20, color: Colors.grey[800]),
         SizedBox(width: 8),
         Expanded(
           child: Row(
@@ -224,7 +225,7 @@ class SpecialWasteCollectionSchedule extends StatelessWidget {
               Text(
                 '$label: ',
                 style: TextStyle(
-                  color: Colors.grey[600],
+                  color: Colors.grey[800],
                   fontSize: 14,
                 ),
               ),
@@ -246,7 +247,7 @@ class SpecialWasteCollectionSchedule extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.green[200],
+        color: Colors.green[500],
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -285,6 +286,8 @@ class SpecialWasteCollectionSchedule extends StatelessWidget {
 }
 
 class Sidebar extends StatelessWidget {
+  const Sidebar({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Drawer(

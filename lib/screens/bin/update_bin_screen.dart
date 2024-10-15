@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class EditBinScreen extends StatefulWidget {
   final DocumentSnapshot binData;
 
-  EditBinScreen({required this.binData});
+  const EditBinScreen({super.key, required this.binData});
 
   @override
   _EditBinScreenState createState() => _EditBinScreenState();

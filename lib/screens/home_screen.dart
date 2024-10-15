@@ -11,6 +11,8 @@ import '../screens/profile/profile_screen.dart';
 import 'admin/admin_waste_dasboard.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
   _AdminHomeScreenState createState() => _AdminHomeScreenState();
 }

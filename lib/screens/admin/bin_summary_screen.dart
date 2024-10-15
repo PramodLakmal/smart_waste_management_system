@@ -19,7 +19,7 @@ class _WasteCollectionReportState extends State<BinSummaryScreen> {
           .where('status', isEqualTo: 'completed')
           .get();
 
-      querySnapshot.docs.forEach((doc) {
+      for (var doc in querySnapshot.docs) {
         collectedRequests.add({
           'wasteCollector': doc['wasteCollector'],
           'bins': doc['bins'],
@@ -28,7 +28,7 @@ class _WasteCollectionReportState extends State<BinSummaryScreen> {
           'endTime': doc['endTime'].toDate(),
           'userIds': doc['userIds'],
         });
-      });
+      }
     } catch (e) {
       print('Error fetching collected waste requests: $e');
     }

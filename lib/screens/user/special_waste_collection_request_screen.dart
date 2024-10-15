@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 class SpecialWasteRequestScreen extends StatefulWidget {
+  const SpecialWasteRequestScreen({super.key});
+
   @override
   _SpecialWasteRequestScreenState createState() => _SpecialWasteRequestScreenState();
 }

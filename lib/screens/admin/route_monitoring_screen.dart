@@ -7,7 +7,7 @@ class BinIdsScreen extends StatefulWidget {
   final String wasteCollectorId;
   final String wasteCollector;
 
-  BinIdsScreen({
+  const BinIdsScreen({super.key, 
     required this.binIds,
     required this.wasteCollectorId,
     required this.wasteCollector, String? scheduleId,
@@ -278,11 +278,11 @@ class _BinIdsScreenState extends State<BinIdsScreen> {
                           if (!_showCollected)
                             ElevatedButton(
                               onPressed: () => _markAsCollected(requestId, binId),
-                              child: Text('Mark as Collected'),
                               style: ElevatedButton.styleFrom(
                                 foregroundColor: Colors.white, backgroundColor: Color(0xFF4CAF50),
                                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                               ),
+                              child: Text('Mark as Collected'),
                             ),
                         ],
                       ),

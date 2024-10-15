@@ -8,6 +8,8 @@ import 'package:flutter/foundation.dart'; // For kIsWeb
 import '../bin/update_bin_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
+
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
@@ -273,7 +275,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Text('Edit'),
                   ),
                 );
-              }).toList(),
+              }),
               SizedBox(height: 20),
               // Add Bin button at the end of the bin list
               ElevatedButton(

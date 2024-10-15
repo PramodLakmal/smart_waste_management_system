@@ -84,7 +84,7 @@ class _AdminViewRequestsScreenState extends State<AdminViewRequestsScreen> {
                       Text('Waste Types:', style: TextStyle(fontWeight: FontWeight.bold)),
                       ...wasteTypes.map((waste) {
                         return Text('${waste['type']} - ${waste['weight']} kg');
-                      }).toList(),
+                      }),
                       SizedBox(height: 8.0),
                       if (status == 'pending')
                         ElevatedButton(

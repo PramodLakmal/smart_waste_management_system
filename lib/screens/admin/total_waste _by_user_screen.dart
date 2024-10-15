@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class TotalWasteByUserScreen extends StatefulWidget {
+  const TotalWasteByUserScreen({super.key});
+
   @override
   _TotalWasteByUserScreenState createState() => _TotalWasteByUserScreenState();
 }
@@ -14,7 +16,7 @@ class _TotalWasteByUserScreenState extends State<TotalWasteByUserScreen> {
         .where('isCollected', isEqualTo: true)
         .snapshots()
         .map((snapshot) =>
-            snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList());
+            snapshot.docs.map((doc) => doc.data()).toList());
   }
 
   // Method to aggregate waste by user

@@ -2,13 +2,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:smart_waste_management_system/screens/admin/create_schedule.dart';
-import 'package:smart_waste_management_system/screens/admin/schedule_details.dart'; // Correct import
+import 'package:smart_waste_management_system/screens/admin/schedule_details.dart';
 import 'package:smart_waste_management_system/screens/admin/special_requests_for_scheduling.dart';
 import 'package:smart_waste_management_system/screens/home_screen.dart';
-import 'special_waste_collection_schedule.dart'; // Import your SpecialWasteCollectionSchedule page here
+import 'special_waste_collection_schedule.dart';
 import '../../models/schedule_model.dart';
 
 class WasteCollectionSchedule extends StatefulWidget {
+  const WasteCollectionSchedule({super.key});
+
   @override
   _WasteCollectionScheduleState createState() =>
       _WasteCollectionScheduleState();
@@ -166,13 +168,13 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
       onPressed: () {
         setState(() => isMonthView = label == 'Month');
       },
-      child: Text(label),
       style: ElevatedButton.styleFrom(
         foregroundColor: isSelected ? Colors.white : Colors.black87,
         backgroundColor: isSelected ? Colors.green[700] : Colors.grey[200],
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       ),
+      child: Text(label),
     );
   }
 
@@ -259,7 +261,7 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
         );
       },
       child: Card(
-        elevation: 2,
+        elevation: 5,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(color: borderColor, width: 2),
@@ -348,6 +350,8 @@ class _WasteCollectionScheduleState extends State<WasteCollectionSchedule> {
 
 // Sidebar widget
 class Sidebar extends StatelessWidget {
+  const Sidebar({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Drawer(

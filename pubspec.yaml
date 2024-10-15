@@ -51,14 +51,19 @@ dependencies:
   pdf: ^3.11.1
   path_provider: ^2.1.4
   image_picker_web: ^4.0.0
+  printing: ^5.13.3
+  permission_handler: ^11.3.1
+  flutter_animate: ^4.5.0
   rxdart: ^0.28.0
   firebase_auth_mocks: ^0.14.0
   fake_cloud_firestore: 3.0.3
+  dio: ^5.7.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   mockito: ^5.4.4
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
