@@ -1,78 +1,96 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_waste_management_system/screens/auth/login_screen.dart';
 import 'package:mockito/mockito.dart';
+import 'package:provider/provider.dart'; // If you're using a provider
+import 'package:smart_waste_management_system/screens/auth/login_screen.dart';
 import 'package:smart_waste_management_system/screens/home_screen.dart';
 import 'package:smart_waste_management_system/services/auth_service.dart';
 
-// Mock classes
 class MockAuthService extends Mock implements AuthService {}
 
-class LoginTest extends StatelessWidget {
-  final AuthService authService;
-
-  const LoginTest({Key? key, required this.authService}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: LoginScreen(), // No need to pass AuthService directly
-    );
-  }
-}
-
 void main() {
-  testWidgets('Login screen test with invalid credentials', (WidgetTester tester) async {
-    // Initialize the mock AuthService
-    final mockAuthService = MockAuthService();
+  group('Login Screen Tests', () {
+    late MockAuthService mockAuthService;
 
-    // Set up the LoginScreen to use the mock AuthService
-    when(mockAuthService.signIn(any as String, any as String)).thenAnswer((_) async => {'error': 'Invalid email or password'}); // Simulating failed login
-
-    await tester.pumpWidget(LoginTest(authService: mockAuthService));
-
-    // Verify that the login form is displayed
-    expect(find.text('Smart Waste'), findsOneWidget);
-    expect(find.byType(TextFormField), findsNWidgets(2)); // Email and password fields
-    expect(find.text('Login'), findsOneWidget);
-
-    // Enter invalid email and password
-    await tester.enterText(find.byType(TextFormField).at(0), 'invalid@email.com');
-    await tester.enterText(find.byType(TextFormField).at(1), 'wrongpassword');
-
-    // Tap the login button
-    await tester.tap(find.text('Login'));
-    await tester.pump(); // Trigger a frame to process the tap
-
-    // Verify that the error message is displayed
-    expect(find.text('Invalid email or password'), findsOneWidget);
-  });
-
-  testWidgets('Login screen test with valid credentials', (WidgetTester tester) async {
-    // Initialize the mock AuthService
-    final mockAuthService = MockAuthService();
-
-    // Simulate successful login
-    when(mockAuthService.signIn(any as String, any as String)).thenAnswer((_) async => {
-      'role': 'user', // Simulate user role returned from authentication
+    setUp(() {
+      mockAuthService = MockAuthService();
     });
 
-    await tester.pumpWidget(LoginTest(authService: mockAuthService));
+    Widget buildTestWidget() {
+      return MaterialApp(
+        home: Provider<AuthService>.value(
+          value: mockAuthService,
+          child: const LoginScreen(),
+        ),
+      );
+    }
 
-    // Verify that the login form is displayed
-    expect(find.text('Smart Waste'), findsOneWidget);
-    expect(find.byType(TextFormField), findsNWidgets(2)); // Email and password fields
-    expect(find.text('Login'), findsOneWidget);
+    testWidgets('Displays error message for invalid login', (WidgetTester tester) async {
+      await tester.pumpWidget(buildTestWidget());
 
-    // Enter valid email and password
-    await tester.enterText(find.byType(TextFormField).at(0), 'valid@email.com');
-    await tester.enterText(find.byType(TextFormField).at(1), 'correctpassword');
+      // Input invalid email and password
+      await tester.enterText(find.byType(TextFormField).first, 'invalid@example.com');
+      await tester.enterText(find.byType(TextFormField).at(1), 'wrongpassword');
 
-    // Tap the login button
-    await tester.tap(find.text('Login'));
-    await tester.pumpAndSettle(); // Wait for navigation to complete
+      // Set up the mock to return null (failed login)
+      when(mockAuthService.signIn('invalid@example.com', 'wrongpassword')).thenAnswer((_) async => null);
 
-    // Verify that the navigation occurred (check for expected routes)
-    expect(find.byType(HomeScreen), findsOneWidget); // Replace with the actual home page widget you expect
+      // Tap the login button
+      await tester.tap(find.text('Login'));
+      await tester.pump();
+
+      // Verify the error message is displayed
+      expect(find.text('Invalid email or password'), findsOneWidget);
+    });
+
+    testWidgets('Navigates to user home on successful login', (WidgetTester tester) async {
+      await tester.pumpWidget(buildTestWidget());
+
+      // Input valid email and password
+      await tester.enterText(find.byType(TextFormField).first, 'user@example.com');
+      await tester.enterText(find.byType(TextFormField).at(1), 'correctpassword');
+
+      // Set up the mock to return user data
+      when(mockAuthService.signIn('user@example.com', 'correctpassword')).thenAnswer((_) async {
+        return {'role': 'user'};
+      });
+
+      // Tap the login button
+      await tester.tap(find.text('Login'));
+      await tester.pumpAndSettle(); // Allow for navigation
+
+      // Verify that navigation occurred to userHome
+      expect(find.byType(HomeScreen), findsOneWidget); // Replace with the actual UserHomeScreen widget
+    });
+
+    testWidgets('Displays error message for empty email', (WidgetTester tester) async {
+      await tester.pumpWidget(buildTestWidget());
+
+      // Input empty email and valid password
+      await tester.enterText(find.byType(TextFormField).first, '');
+      await tester.enterText(find.byType(TextFormField).at(1), 'validpassword');
+
+      // Tap the login button
+      await tester.tap(find.text('Login'));
+      await tester.pump();
+
+      // Check if the error message for email is shown
+      expect(find.text('Please enter email'), findsOneWidget); // Ensure you implement this validation
+    });
+
+    testWidgets('Displays error message for empty password', (WidgetTester tester) async {
+      await tester.pumpWidget(buildTestWidget());
+
+      // Input valid email and empty password
+      await tester.enterText(find.byType(TextFormField).first, 'valid@example.com');
+      await tester.enterText(find.byType(TextFormField).at(1), '');
+
+      // Tap the login button
+      await tester.tap(find.text('Login'));
+      await tester.pump();
+
+      // Check if the error message for password is shown
+      expect(find.text('Please enter password'), findsOneWidget); // Ensure you implement this validation
+    });
   });
 }
