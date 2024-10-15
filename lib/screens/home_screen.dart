@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:percent_indicator/percent_indicator.dart'; // For visualizing percentages
 import 'package:flutter/foundation.dart'; // For kIsWeb
 import '../screens/admin/user_management_screen.dart';
 import '../screens/admin/confirm_bin_screen.dart';

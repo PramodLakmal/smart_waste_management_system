@@ -314,7 +314,7 @@ class _SpecialWasteRequestScreenState extends State<SpecialWasteRequestScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
         onPressed: _submitRequest,
-        child: Text('Submit Request', style: TextStyle(fontSize: 18)),
+        child: Text('Submit Request', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
       ),
     );
   }
