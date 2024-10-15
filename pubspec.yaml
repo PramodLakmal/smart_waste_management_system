@@ -55,13 +55,15 @@ dependencies:
   permission_handler: ^11.3.1
   flutter_animate: ^4.5.0
   rxdart: ^0.28.0
-  mockito: ^5.4.4
+  firebase_auth_mocks: ^0.14.0
+  fake_cloud_firestore: 3.0.3
   dio: ^5.7.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-    
+  mockito: ^5.4.4
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

@@ -4,6 +4,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
 class CompletedSchedulesPage extends StatelessWidget {
+  final FirebaseAuth auth;
+  final FirebaseFirestore firestore;
+
+  // Allow injection of FirebaseAuth and FirebaseFirestore instances
+  CompletedSchedulesPage({super.key, 
+    FirebaseAuth? auth,
+    FirebaseFirestore? firestore,
+  })  : this.auth = auth ?? FirebaseAuth.instance,
+        this.firestore = firestore ?? FirebaseFirestore.instance;
+
   final Color primaryColor = Color(0xFF2E7D32);
   final Color secondaryColor = Color(0xFF4CAF50);
   final Color backgroundColor = Colors.grey[200]!;
@@ -30,18 +40,20 @@ class CompletedSchedulesPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Completed Special Schedules', style: TextStyle(color: primaryColor)),
+        title: Text('Completed Special Schedules',
+            style: TextStyle(color: primaryColor)),
         elevation: 0,
       ),
       body: StreamBuilder(
-        stream: FirebaseFirestore.instance
+        stream: firestore
             .collection('specialschedule')
             .where('wasteCollectorId', isEqualTo: currentUser.uid)
             .where('status', isEqualTo: 'completed')
             .snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator(color: secondaryColor));
+            return Center(
+                child: CircularProgressIndicator(color: secondaryColor));
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return Center(
@@ -69,11 +81,17 @@ class CompletedSchedulesPage extends StatelessWidget {
                   children: [
                     Text(
                       "Total Waste Collected:  ",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
                     ),
                     Text(
                       "${totalWasteCollected.toStringAsFixed(2)} kg",
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
                     ),
                   ],
                 ),
@@ -85,13 +103,16 @@ class CompletedSchedulesPage extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final schedule = schedules[index];
                     return Card(
-                      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      margin:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       elevation: 4,
                       color: backgroundColor,
                       child: ExpansionTile(
                         title: Text(
                           "Schedule #${index + 1}",
-                          style: TextStyle(fontWeight: FontWeight.bold, color: primaryColor),
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: primaryColor),
                         ),
                         subtitle: Text(
                           "Date: ${_formatDate(schedule['scheduledDate'])}",
@@ -103,17 +124,29 @@ class CompletedSchedulesPage extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text("Status: ${schedule['status']}", style: TextStyle(color: primaryColor)),
+                                Text("Status: ${schedule['status']}",
+                                    style: TextStyle(color: primaryColor)),
                                 SizedBox(height: 8),
-                                Text("Waste Types:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+                                Text("Waste Types:",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black)),
                                 ...schedule['wasteTypes'].map<Widget>((waste) {
                                   return Padding(
-                                    padding: EdgeInsets.only(left: 16, top: 4),
+                                    padding:
+                                        EdgeInsets.only(left: 16, top: 4),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text("${waste['type']}:", style: TextStyle(color: Colors.black)),
-                                        Text("${waste['weight']} kg", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                                        Text("${waste['type']}:",
+                                            style:
+                                                TextStyle(color: Colors.black)),
+                                        Text("${waste['weight']} kg",
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontWeight:
+                                                    FontWeight.bold)),
                                       ],
                                     ),
                                   );

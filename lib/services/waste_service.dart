@@ -1,6 +1,5 @@
 // services/waste_service.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:smart_waste_management_system/models/schedule_model.dart';
 import '../models/waste_record_model.dart';
 
 class WasteService {
@@ -45,6 +44,23 @@ class WasteService {
     } catch (e) {
       print('Error updating waste record status: $e');
       rethrow;
+    }
+  }
+
+  Future<double> calculateTotalWaste(String wasteCollector) async {
+    try {
+      QuerySnapshot querySnapshot = await wasteRecordsCollection
+          .where('wasteCollector', isEqualTo: wasteCollector)
+          .get();
+
+      double totalWeight = querySnapshot.docs
+          .map((doc) => WasteRecord.fromFirestore(doc))
+          .fold(0.0, (sum, record) => sum + record.weight);
+
+      return totalWeight;
+    } catch (e) {
+      print('Error calculating total waste: $e');
+      return 0.0;
     }
   }
 }
