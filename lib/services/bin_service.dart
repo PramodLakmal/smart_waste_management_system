@@ -7,16 +7,16 @@ class BinService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  // Add a new bin
+  // Add a new bin with image upload
   Future<void> addBin(Bin bin, File imageFile) async {
-    // Upload image to Firebase Storage
-    final imageRef = _storage.ref().child('bin_images/${bin.id}');
+    // Upload the image to Firebase Storage
+    final imageRef = _storage.ref().child('bin_images/${bin.binId}');
     await imageRef.putFile(imageFile);
     final imageUrl = await imageRef.getDownloadURL();
 
-    // Add bin to Firestore with the image URL
+    // Set the imageUrl in the bin object and add to Firestore
     bin.imageUrl = imageUrl;
-    await _db.collection('bins').doc(bin.id).set(bin.toMap());
+    await _db.collection('bins').doc(bin.binId).set(bin.toMap());
   }
 
   // Fetch bins for a specific user
@@ -25,41 +25,38 @@ class BinService {
         .collection('bins')
         .where('userId', isEqualTo: userId)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => Bin.fromDocument(doc)).toList());
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => Bin.fromDocument(doc)).toList());
   }
 
-  // Confirm bin (admin)
+  // Confirm a bin (admin functionality)
   Future<void> confirmBin(String binId) async {
-    await _db.collection('bins').doc(binId).update({'isConfirmed': true});
+    await _db.collection('bins').doc(binId).update({'confirmed': true});
   }
 
   // Fetch bins awaiting confirmation (for admin)
   Stream<List<Bin>> getUnconfirmedBins() {
     return _db
         .collection('bins')
-        .where('isConfirmed', isEqualTo: false)
+        .where('confirmed', isEqualTo: false)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => Bin.fromDocument(doc)).toList());
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => Bin.fromDocument(doc)).toList());
   }
 
+  // Fetch bins assigned to a specific waste collector
   Stream<List<Bin>> getBinsForCollector(String wasteCollector) {
     return _db
         .collection('bins')
         .where('wasteCollector', isEqualTo: wasteCollector)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => Bin.fromDocument(doc)).toList());
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => Bin.fromDocument(doc)).toList());
   }
 
-  getBinsForCollectorByAddress(String wasteCollector) {
-    return _db
-        .collection('bins')
-        .where('wasteCollector', isEqualTo: wasteCollector)
-        .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => Bin.fromDocument(doc)).toList());
-  }
-
-  markBinAsCollected(String binId) {
-    return _db.collection('bins').doc(binId).update({
+  // Mark a bin as collected, resetting its filled percentage and collection status
+  Future<void> markBinAsCollected(String binId) async {
+    await _db.collection('bins').doc(binId).update({
       'collectionRequestSent': false,
       'filledPercentage': 0,
     });

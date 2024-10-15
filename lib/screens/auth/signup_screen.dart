@@ -59,7 +59,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               ),
                               SizedBox(height: 24),
                               Text(
-                                'Join Smart Waste',
+                                'Join EcoCollect',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 28,

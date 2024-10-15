@@ -46,7 +46,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   AppBar _buildWebAppBar() {
     return AppBar(
       title:
-          Text('Smart Waste Management', style: TextStyle(color: Colors.white)),
+          Text('EcoCollect', style: TextStyle(color: Colors.white)),
       backgroundColor: Color(0xFF2E7D32),
       actions: [
         ..._buildWebNavBar(),
@@ -57,7 +57,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
   AppBar _buildMobileAppBar() {
     return AppBar(
-      title: Text('Smart Waste', style: TextStyle(color: Colors.white)),
+      title: Text('EcoCollect', style: TextStyle(color: Colors.white)),
       backgroundColor: Color(0xFF2E7D32),
       elevation: 0,
     );
