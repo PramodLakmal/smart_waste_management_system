@@ -3,7 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 class AdminViewRequestsScreen extends StatefulWidget {
+  const AdminViewRequestsScreen({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _AdminViewRequestsScreenState createState() => _AdminViewRequestsScreenState();
 }
 

@@ -110,7 +110,6 @@ class _WasteDetailsScreenState extends State<WasteDetailsScreen> {
               final requestId = requests[index].id;
               final binId = requestData['binId'];
               final userId = requestData['userId'];
-              final requestedTime = requestData['requestedTime']?.toDate() ?? DateTime.now();
 
               return FutureBuilder<Map<String, dynamic>?>(
                 future: Future.wait([
@@ -134,8 +133,6 @@ class _WasteDetailsScreenState extends State<WasteDetailsScreen> {
 
                   final userName = userData['name'] ?? 'Unknown Name';
                   final userEmail = userData['email'] ?? 'Unknown Email';
-                  final binType = binData['type'] ?? 'Unknown Type';
-                  final binWeight = binData['weight']?.toString() ?? 'Unknown Weight';
 
                   return Card(
                     margin: EdgeInsets.symmetric(horizontal: 10, vertical: 6),

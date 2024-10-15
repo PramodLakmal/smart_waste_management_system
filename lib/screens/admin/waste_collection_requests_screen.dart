@@ -11,6 +11,7 @@ class WasteCollectionRequestsScreen extends StatefulWidget {
         super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _WasteCollectionRequestsScreenState createState() =>
       _WasteCollectionRequestsScreenState();
 }
@@ -59,11 +60,14 @@ class _WasteCollectionRequestsScreenState extends State<WasteCollectionRequestsS
       });
 
       // Show a snackbar confirming the update
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Marked as collected.')),
       );
     } catch (e) {
+      // ignore: avoid_print
       print('Error marking as collected: $e');
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to mark as collected.')),
       );

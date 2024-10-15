@@ -8,7 +8,7 @@ class CompletedSchedulesPage extends StatelessWidget {
   final FirebaseFirestore firestore;
 
   // Allow injection of FirebaseAuth and FirebaseFirestore instances
-  CompletedSchedulesPage({
+  CompletedSchedulesPage({super.key, 
     FirebaseAuth? auth,
     FirebaseFirestore? firestore,
   })  : this.auth = auth ?? FirebaseAuth.instance,

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Add this import for date formatting
 
 class BinSummaryScreen extends StatefulWidget {
+  const BinSummaryScreen({super.key});
+
   @override
   _WasteCollectionReportState createState() => _WasteCollectionReportState();
 }
