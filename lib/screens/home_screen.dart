@@ -87,7 +87,7 @@ class _AdminHomeScreenState extends State<HomeScreen> {
             _buildAdminCard(
               icon: Icons.people,
               title: 'User Management',
-              description: 'Manage Users in the System',
+              description: '',
               onTap: () {
                 Navigator.push(
                   context,
@@ -99,7 +99,7 @@ class _AdminHomeScreenState extends State<HomeScreen> {
             _buildAdminCard(
               icon: Icons.add_box,
               title: 'Bin Registration',
-              description: 'Review and Confirm Bins',
+              description: '',
               onTap: () {
                 Navigator.push(
                   context,
@@ -111,7 +111,7 @@ class _AdminHomeScreenState extends State<HomeScreen> {
             _buildAdminCard(
               icon: Icons.schedule,
               title: 'Waste Collection Schedule',
-              description: 'Schedule Waste Collection',
+              description: '',
               onTap: () {
                 Navigator.push(
                   context,
@@ -123,7 +123,7 @@ class _AdminHomeScreenState extends State<HomeScreen> {
             _buildAdminCard(
               icon: Icons.list,
               title: 'View Collection Requests',
-              description: 'View all Waste Collection Requests',
+              description: '',
               onTap: () {
                 Navigator.push(
                   context,
@@ -147,7 +147,7 @@ class _AdminHomeScreenState extends State<HomeScreen> {
             _buildAdminCard(
               icon: Icons.map,
               title: 'Vehicle and Route Monitoring',
-              description: 'Monitor Waste Collection Routes',
+              description: '',
               onTap: () async {
                 Navigator.push(
               context,

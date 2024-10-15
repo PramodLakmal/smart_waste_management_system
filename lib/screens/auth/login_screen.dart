@@ -56,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             SizedBox(height: 24),
                             Text(
-                              'Smart Waste',
+                              'EcoCollect',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 28,
@@ -66,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             SizedBox(height: 8),
                             Text(
-                              'Management System',
+                              'Smart Waste Management System',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 18,

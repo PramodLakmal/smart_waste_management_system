@@ -281,7 +281,7 @@ class _EditRequestScreenState extends State<EditRequestScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
         onPressed: _updateRequest,
-        child: Text('Update Request', style: TextStyle(fontSize: 18)),
+        child: Text('Update Request', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
       ),
     );
   }
