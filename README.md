@@ -10,11 +10,11 @@ Developed an intelligent system to streamline waste collection in urban environm
 
 Key Features:<br>
 
-Real-time waste bin monitoring and dynamic route optimization.<br>
-Special waste collection requests for large or unique items.<br>
-Waste categorization for better recycling (e-waste, plastic, organic).<br>
-Digital waste tracking to improve collection accuracy.<br>
-Coin-based rewards system replacing the traditional cash payment method.<br>
+-Real-time waste bin monitoring and dynamic route optimization.<br>
+-Special waste collection requests for large or unique items.<br>
+-Waste categorization for better recycling (e-waste, plastic, organic).<br>
+-Digital waste tracking to improve collection accuracy.<br>
+-Coin-based rewards system replacing the traditional cash payment method.<br>
 
 <br><h3>Application's UI Screenshots</h3><br>
 
