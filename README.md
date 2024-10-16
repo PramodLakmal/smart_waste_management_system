@@ -16,6 +16,18 @@ Waste categorization for better recycling (e-waste, plastic, organic).<br>
 Digital waste tracking to improve collection accuracy.<br>
 Coin-based rewards system replacing the traditional cash payment method.<br>
 
+<br><h3>Application's UI Screenshots</h3><br>
+
+<p><img src="EcoCollector Screenshots/Screenshot_20241014_205847.jpg" width="300"/>&ensp; &ensp;
+<img src="EcoCollector Screenshots/Screenshot_20241014_205858.jpg" width="300" />&ensp; &ensp;
+<img src="EcoCollector Screenshots/Screenshot_20241014_210056.jpg" width="300" />&ensp; &ensp;
+<img src="EcoCollector Screenshots/Screenshot_20241014_210114.jpg" width="300" />&ensp; &ensp;
+<img src="EcoCollector Screenshots/Screenshot_20241014_210204.jpg" width="300" />&ensp; &ensp;
+<img src="EcoCollector Screenshots/Screenshot_1728924908.png" width="300" />&ensp; &ensp;
+<img src="EcoCollector Screenshots/Screenshot_1728924961.png" width="300" />&ensp; &ensp;
+<img src="EcoCollector Screenshots/Screenshot 2024-10-14 214453.png" width="300" />&ensp; &ensp;
+<img src="EcoCollector Screenshots/Screenshot 2024-10-14 214640.png" width="300" /></p>
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
